@@ -17,7 +17,6 @@ class SpectrumKernel(Kernel):
         """
         Evaluation function computing the inner product between phi_x and phi_y
         """
-
         xwords_occurrence = {}
         count = 0
         for l in range(len(x[0]) - self.k + 1):
