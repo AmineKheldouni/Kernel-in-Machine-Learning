@@ -5,7 +5,6 @@
 from kernels.kernel import *
 
 class CenteredKernel(Kernel):
-
     def __init__(self, kernel):
         super().__init__()
         self.kernel = kernel
@@ -19,55 +18,40 @@ class CenteredKernel(Kernel):
 
         return self.kernel.evaluate(x, y) - tmp / self.n + self.eta
 
-
-    def compute_K_train(self, Xtr, n, K=None):
-
+    def compute_train(self, Xtr, K=None):
         start = time.time()
-        print("Called compute_K_train (CENTERED VERSION)")
-
+        print("Compute Train: Centered Kernel")
         self.Xtr = Xtr
-        self.n = n
+        self.n = len(self.Xtr)
         if K is None:
             # Compute the non-centered Gram matrix
-            self.K_tr_nc = self.kernel.compute_K_train(self.Xtr, self.n)
+            self.K = self.kernel.compute_train(self.Xtr)
         else:
-            self.K_tr_nc = K
+            self.K = K
 
-        self.eta = np.sum(self.K_tr_nc) / np.power(self.n, 2)
+        self.eta = np.sum(self.K) / np.power(self.n, 2)
 
-        # Store centered kernel
-        U = np.ones(self.K_tr_nc.shape) / self.n
-        self.K_tr_c = (np.eye(self.n) - U).dot(self.K_tr_nc) \
-            .dot(np.eye(self.n) - U)
-
+        # Compute centered kernel
+        U = (1./self.n) * np.ones(self.K.shape)
+        self.K_centered = (np.eye(self.n) - U).dot(self.K).dot(np.eye(self.n) - U)
         end = time.time()
-        print("end. Time elapsed:", "{0:.2f}".format(end - start))
+        print("Time elapsed: {0:.2f}".format(end - start))
+        return self.K_centered
 
-        return self.K_tr_c
-
-    def compute_K_test(self, Xtr, n, Xte, m):
-        print("Called compute_K_test (CENTERED VERSION)")
+    def compute_test(self, Xtr, Xte):
+        print("Compute Test: Centered Kernel")
         start = time.time()
+        n = len(Xtr)
+        m = len(Xte)
 
         if self.eta is None:
-            self.compute_K_train(Xtr, n)
+            self.compute_train(Xtr)
 
-        # Get the non-centered K test
-        K_te_nc = self.kernel.compute_K_test(Xtr, n, Xte, m)
-
-        # The new K_t is the non-centered matrix
-        K_te_c = K_te_nc + (-1 / self.n) * (
-                    K_te_nc.dot(np.ones((self.n, self.n))) +
-                    np.ones((m, self.n)).dot(self.K_tr_nc))
-        K_te_c += self.eta
-
+        # Get the non-centered Test Kernel
+        K = self.kernel.compute_test(Xtr, Xte)
+        # Compute the centered version
+        Kte_centered = K + (-1 / self.n) * (K.dot(np.ones((self.n, self.n))) + np.ones((m, self.n)).dot(self.K))
+        Kte_centered += self.eta
         end = time.time()
-        print("end. Time elapsed:", "{0:.2f}".format(end - start))
-
-        return K_te_c
-
-    def get_non_centered_K_tr(self):
-        return self.K_tr_nc
-
-    def get_centered_K_tr(self):
-        return self.K_tr_c
+        print("Time elapsed: {0:.2f}".format(end - start))
+        return Kte_centered

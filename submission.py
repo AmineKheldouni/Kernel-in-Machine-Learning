@@ -2,11 +2,11 @@ import numpy as np
 
 
 def generate_submission_file(file_name, classifier0, classifier1, classifier2,\
-    Xte0, m0, Xte1, m1, Xte2, m2):
+    Xte0, Xte1, Xte2):
 
-    Yte0 = np.array(np.sign(classifier0.predict(Xte0, m0)), dtype=int)
-    Yte1 = np.array(np.sign(classifier1.predict(Xte1, m1)), dtype=int)
-    Yte2 = np.array(np.sign(classifier2.predict(Xte2, m2)), dtype=int)
+    Yte0 = np.array(np.sign(classifier0.predict(Xte0)), dtype=int)
+    Yte1 = np.array(np.sign(classifier1.predict(Xte1)), dtype=int)
+    Yte2 = np.array(np.sign(classifier2.predict(Xte2)), dtype=int)
 
     # Map {-1, 1} back to {0, 1}
     Yte0[Yte0 == -1] = 0

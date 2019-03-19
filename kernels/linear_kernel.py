@@ -14,18 +14,14 @@ class LinearKernel(Kernel):
     def evaluate(self, x, y):
         return x.dot(y.transpose())
 
-    def compute_K_train(self, Xtr, n):
-
-        print("LinearKernel.compute_K_train")
+    def compute_train(self, Xtr):
+        print("Compute Train: Linear Kernel")
         Ktr = Xtr.dot(Xtr.T)
         print("end")
-
         return Ktr
 
-    def compute_K_test(self, Xtr, n, Xte, m, verbose=True):
-
-        print("LinearKernel.compute_K_test")
+    def compute_test(self, Xtr, Xte):
+        print("Compute Test: Linear Kernel")
         K_te = Xte.dot(Xtr.T)
         print("end")
-
         return K_te
