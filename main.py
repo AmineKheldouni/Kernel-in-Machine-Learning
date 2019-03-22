@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 import numpy as np
@@ -51,13 +52,11 @@ Xtr0 = Xtr0_merged.copy()
 
 lbd0 = 0.03
 
-svm0 = SVM(SpectrumKernel(k0), center=True)
+svm0 = SVM(SpectrumKernel(k0), center=False)
 svm0.train(Xtr0, Ytr0, lbd0)
 # Training accuracy
-f = svm0.get_training_results()
-tmp = Ytr0 == np.sign(f)
-accuracy = np.sum(tmp) / np.size(tmp)
-print("Training accuracy:", accuracy)
+print("Training accuracy:", svm0.score_train())
+#print("Training accuracy:", svm0.score(Xtr0,Ytr0)) #check
 
 ###############################################################################
 print(">>> Set 1")
@@ -70,13 +69,10 @@ for i in range(len(Xtr0)):
     Xtr1_merged[i] = (Xtr1[i],tries[i],occs[i])
 Xtr1 = Xtr1_merged.copy()
 
-svm1 = SVM(SpectrumKernel(k1), center=True)
+svm1 = SVM(SpectrumKernel(k1), center=False)
 svm1.train(Xtr1, Ytr1, lbd1)
 # Training accuracy
-f = svm1.get_training_results()
-tmp = Ytr1 == np.sign(f)
-accuracy = np.sum(tmp) / np.size(tmp)
-print("Training accuracy:", accuracy)
+print("Training accuracy:", svm1.score_train())
 
 ###############################################################################
 print(">>> Set 2")
@@ -90,13 +86,10 @@ for i in range(len(Xtr0)):
     Xtr2_merged[i] = (Xtr2[i],tries[i],occs[i])
 Xtr2 = Xtr2_merged.copy()
 
-svm2 = SVM(SpectrumKernel(k2), center=True)
+svm2 = SVM(SpectrumKernel(k2), center=False)
 svm2.train(Xtr2, Ytr2, lbd2)
 # Training accuracy
-f = svm2.get_training_results()
-tmp = Ytr2 == np.sign(f)
-accuracy = np.sum(tmp) / np.size(tmp)
-print("Training accuracy:", accuracy)
+print("Training accuracy:", svm2.score_train())
 
 ###############################################################################
 ##############################  TEST SESSION ##################################
@@ -113,3 +106,11 @@ Xte2 = pd.read_csv('./data/Xte2.csv', sep=',', header=0)
 Xte2 = Xte2['seq'].values
 
 generate_submission_file("Yte_spectrum_v0.csv", svm0, svm1, svm2, Xte0, Xte1, Xte2)
+
+
+
+
+
+##########
+#Xtr0 = {i:v for (i,v) in Xtr0.items() if i<50} 
+#Ytr0 = Ytr0[:50]

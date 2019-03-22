@@ -1,7 +1,9 @@
-
 import numpy as np
 from cvxopt import matrix, solvers
 from kernels.centered_kernel import *
+import math
+
+EPS = math.pow(10,-5)
 
 class SVM:
     """
@@ -40,18 +42,40 @@ class SVM:
         self.alpha = np.array(solvers.qp(P, q, G, h)['x'])
         print("SVM optimization solved !")
 
+        self.alpha = self.alpha.flatten()
 
-    def get_training_results(self):
-        f = np.sign(self.K.dot(self.alpha.reshape((self.alpha.size, 1))))
-        return f.reshape(-1)
+        self.idx_SV = np.argwhere(np.abs(self.alpha)>EPS).flatten()
+        print("number of SV : ", self.idx_SV.shape[0])
+        self.Xtr_SV = {i:self.Xtr[self.idx_SV[i]] for i in range(self.idx_SV.shape[0])}
+        self.alpha_SV = self.alpha[np.ix_(self.idx_SV)]
+        print("alpha values of SV ", self.alpha_SV)
+
+    def score_train(self):
+        if self.center:
+            f = np.sign(self.K.dot(self.alpha.reshape((self.alpha.size, 1))))
+        else:
+            K_t = self.K[np.ix_(np.arange(self.n),self.idx_SV)]
+            f = np.sign(K_t.dot(self.alpha_SV.reshape((self.alpha_SV.size, 1))))
+        return np.mean(f.reshape(-1)==self.Ytr)
 
     def predict(self, Xte, K_t=None):
         print("Predicting Test sets, please wait ...")
-        if K_t is None:
-            self.K_t = self.kernel.compute_test(self.Xtr, Xte)
+        if self.center:
+            if K_t is None:
+                self.K_t = self.kernel.compute_test(self.Xtr, Xte)
+            else:
+                self.K_t = K_t
+            Yte = self.K_t.dot(self.alpha.reshape((self.alpha.size, 1))).reshape(-1)
         else:
-            self.K_t = K_t
-        Yte = self.K_t.dot(self.alpha.reshape((self.alpha.size, 1))).reshape(-1)
+            if K_t is None:
+                self.K_t = self.kernel.compute_test(self.Xtr_SV, Xte)
+            else:
+                self.K_t = K_t
+            Yte = self.K_t.dot(self.alpha_SV.reshape((self.alpha_SV.size, 1))).reshape(-1)
         print("Test predictions computed successfully !")
+        return np.sign(Yte)
 
-        return Yte
+    def score(self, Xt, Yt):
+        predictions = self.predict(Xt, K_t=None)
+        #print(predictions,Yt)
+        return np.mean(predictions==Yt)
