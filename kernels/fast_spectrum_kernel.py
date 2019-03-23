@@ -3,6 +3,7 @@ import numpy as np
 
 class SpectrumKernel(FastKernel):
     def __init__(self, k):
+        super().__init__()
         self.k = k
         self.index = {"A": 0, "C": 1, "G": 2, "T": 3}
     

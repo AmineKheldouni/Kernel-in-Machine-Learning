@@ -7,6 +7,8 @@ import pandas as pd
 from submission import *
 from kernels.fast_spectrum_kernel import SpectrumKernel
 from kernels.linear_kernel import LinearKernel
+from kernels.levenshtein_kernel import LevenshteinKernel
+from kernels.rbf_kernel import RBFKernel
 import time
 from utils import *
 
