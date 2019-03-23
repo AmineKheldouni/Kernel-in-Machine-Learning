@@ -6,6 +6,7 @@ import pandas as pd
 
 from submission import *
 from kernels.fast_spectrum_kernel import SpectrumKernel
+from kernels.fast_sum_spectrum_kernel import SumSpectrumKernel
 from kernels.linear_kernel import LinearKernel
 from kernels.levenshtein_kernel import LevenshteinKernel
 from kernels.rbf_kernel import RBFKernel
@@ -41,14 +42,16 @@ X0_train, X0_val, y0_train, y0_val = train_val_split(Xtr0, Ytr0)
 X1_train, X1_val, y1_train, y1_val = train_val_split(Xtr1, Ytr1)
 X2_train, X2_val, y2_train, y2_val = train_val_split(Xtr2, Ytr2)
 
-###############################################################################
-##############################  TRAIN SESSION #################################
-###############################################################################
+##############################################################################
+#############################  TRAIN SESSION #################################
+##############################################################################
 
 print(">>> Set 0")
-k0 = 5
+# k0 = 5
+k0 = [1,2,3,4,5,6,7,8]
 lbd0 = 0.03
-kernel0 = SpectrumKernel(k0)
+# kernel0 = SpectrumKernel(k0)
+kernel0 = SumSpectrumKernel(k0)
 
 svm0, train_acc, val_acc = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
 print("Training accuracy:", train_acc)
@@ -56,21 +59,20 @@ print("Valudation accuracy:", val_acc)
 
 ###############################################################################
 print(">>> Set 1")
-k1 = 7
+k1 = [1,2,3,4,5,6,7,8]
 lbd1 = 0.02
-kernel1 = SpectrumKernel(k1)
+kernel1 = SumSpectrumKernel(k1)
 
 svm1, train_acc, val_acc = SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, lbd1)
 print("Training accuracy:", train_acc)
 print("Valudation accuracy:", val_acc)
 
-
 ###############################################################################
 print(">>> Set 2")
 
-lbd2 = 0.245
-k2 = 4
-kernel2 = SpectrumKernel(k2)
+lbd2 = 0.095
+k2 = [1, 2, 3, 4, 5, 6, 7, 8]
+kernel2 = SumSpectrumKernel(k2)
 
 svm2, train_acc, val_acc = SVM_prediction(X2_train, X2_val, y2_train, y2_val, kernel2, lbd2)
 print("Training accuracy:", train_acc)
