@@ -5,6 +5,9 @@ import math
 
 EPS = math.pow(10,-5)
 
+from cvxopt import matrix, solvers
+
+
 class SVM:
     """
         Implements Support Vector Machine.
@@ -14,68 +17,39 @@ class SVM:
         self.kernel = kernel
         self.center = center
 
-    def init_train(self, Xtr, Ytr, K):
-
+    def init_train(self, Xtr, Ytr):
         self.Xtr = Xtr
         self.Ytr = Ytr
-        self.n = len(Xtr)
+        self.K = self.kernel.compute_train(self.Xtr)
 
-        if self.center:
-            print("Centered K")
-            if not isinstance(self.kernel, CenteredKernel):
-                self.kernel = CenteredKernel(self.kernel)
-        if K is None:
-            print("Building the Kernel ...")
-            self.K = self.kernel.compute_train(self.Xtr)
-            print("Kernel built successfully !")
-        else:
-            self.K = K
+    def train(self, Xtr, Ytr, lbd=1):
+        n = len(Xtr)
+        self.init_train(Xtr, Ytr)
 
-    def train(self, Xtr, Ytr, lambd=1, K=None):
-        self.init_train(Xtr, Ytr, K)
-        print("Solving SVM optimization, please wait ...")
+        print("Solving SVM optimization ...")
+
         P = matrix(self.K, tc='d')
         q = matrix(-Ytr, tc='d')
         G = matrix(np.append(np.diag(-Ytr.astype(float)), np.diag(Ytr.astype(float)), axis=0), tc='d')
-        h = matrix(np.append(np.zeros(self.n), np.ones(self.n, dtype=float) / (2 * lambd * self.n), axis=0), tc='d')
+        h = matrix(np.append(np.zeros(n), np.ones(n, dtype=float) / (2 * lbd * n), axis=0), tc='d')
         solvers.options['show_progress'] = False
         self.alpha = np.array(solvers.qp(P, q, G, h)['x'])
-        print("SVM optimization solved !")
+        self.alpha[np.abs(self.alpha) < EPS] = 0
 
-        self.alpha = self.alpha.flatten()
+        print("SVM solved !")
 
-        self.idx_SV = np.argwhere(np.abs(self.alpha)>EPS).flatten()
-        print("number of SV : ", self.idx_SV.shape[0])
-        self.Xtr_SV = {i:self.Xtr[self.idx_SV[i]] for i in range(self.idx_SV.shape[0])}
-        self.alpha_SV = self.alpha[np.ix_(self.idx_SV)]
-        print("alpha values of SV ", self.alpha_SV)
+    def get_training_results(self):
+        f = np.sign(self.K.dot(self.alpha.reshape((self.alpha.size, 1))))
+        return f.reshape(-1)
+
+    def predict(self, Xte):
+        print("Predicting ...")
+        self.K_t = self.kernel.compute_test(self.Xtr, Xte)
+        predictions = self.K_t.dot(self.alpha.reshape((self.alpha.size, 1))).reshape(-1)
+        print("End of predictions !")
+
+        return predictions
 
     def score_train(self):
-        if self.center:
-            f = np.sign(self.K.dot(self.alpha.reshape((self.alpha.size, 1))))
-        else:
-            K_t = self.K[np.ix_(np.arange(self.n),self.idx_SV)]
-            f = np.sign(K_t.dot(self.alpha_SV.reshape((self.alpha_SV.size, 1))))
-        return np.mean(f.reshape(-1)==self.Ytr)
-
-    def predict(self, Xte, K_t=None):
-        print("Predicting Test sets, please wait ...")
-        if self.center:
-            if K_t is None:
-                self.K_t = self.kernel.compute_test(self.Xtr, Xte)
-            else:
-                self.K_t = K_t
-            Yte = self.K_t.dot(self.alpha.reshape((self.alpha.size, 1))).reshape(-1)
-        else:
-            if K_t is None:
-                self.K_t = self.kernel.compute_test(self.Xtr_SV, Xte)
-            else:
-                self.K_t = K_t
-            Yte = self.K_t.dot(self.alpha_SV.reshape((self.alpha_SV.size, 1))).reshape(-1)
-        print("Test predictions computed successfully !")
-        return np.sign(Yte)
-
-    def score(self, Xt, Yt):
-        predictions = self.predict(Xt, K_t=None)
-        #print(predictions,Yt)
-        return np.mean(predictions==Yt)
+        f = np.sign(self.K.dot(self.alpha.reshape((self.alpha.size, 1))))
+        return np.mean(f.reshape(-1) == self.Ytr)

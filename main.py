@@ -6,7 +6,7 @@ import pandas as pd
 
 from submission import *
 from algorithms.svm import SVM
-from kernels.spectrum_kernel import SpectrumKernel
+from kernels.fast_spectrum_kernel import SpectrumKernel
 from kernels.linear_kernel import LinearKernel
 import time
 from utils import *
@@ -43,13 +43,6 @@ Ytr2 = 2*Ytr2-1
 
 print(">>> Set 0")
 k0 = 5
-Xtr0_merged = {}
-tries = compute_trie(Xtr0, k0)
-occs = compute_occurences(Xtr0, k0)
-for i in range(len(Xtr0)):
-    Xtr0_merged[i] = (Xtr0[i],tries[i],occs[i])
-Xtr0 = Xtr0_merged.copy()
-
 lbd0 = 0.03
 
 svm0 = SVM(SpectrumKernel(k0), center=False)
@@ -62,12 +55,6 @@ print("Training accuracy:", svm0.score_train())
 print(">>> Set 1")
 k1 = 7
 lbd1 = 0.02
-Xtr1_merged = {}
-tries = compute_trie(Xtr1, k1)
-occs = compute_occurences(Xtr1, k1)
-for i in range(len(Xtr0)):
-    Xtr1_merged[i] = (Xtr1[i],tries[i],occs[i])
-Xtr1 = Xtr1_merged.copy()
 
 svm1 = SVM(SpectrumKernel(k1), center=False)
 svm1.train(Xtr1, Ytr1, lbd1)
@@ -79,12 +66,6 @@ print(">>> Set 2")
 
 lbd2 = 0.245
 k2 = 4
-Xtr2_merged = {}
-tries = compute_trie(Xtr2, k2)
-occs = compute_occurences(Xtr2, k2)
-for i in range(len(Xtr0)):
-    Xtr2_merged[i] = (Xtr2[i],tries[i],occs[i])
-Xtr2 = Xtr2_merged.copy()
 
 svm2 = SVM(SpectrumKernel(k2), center=False)
 svm2.train(Xtr2, Ytr2, lbd2)
