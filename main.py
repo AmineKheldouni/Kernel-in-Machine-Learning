@@ -18,7 +18,6 @@ Xtr0 = Xtr0['seq'].values
 
 Ytr0 = pd.read_csv('./data/Ytr0.csv', sep=',', header=0)
 Ytr0 = Ytr0['Bound'].values
-# Map the 0/1 labels to -1/1
 Ytr0 = 2*Ytr0-1
 
 # Read training set 1
@@ -112,5 +111,5 @@ generate_submission_file("Yte_spectrum_v0.csv", svm0, svm1, svm2, Xte0, Xte1, Xt
 
 
 ##########
-#Xtr0 = {i:v for (i,v) in Xtr0.items() if i<50} 
+#Xtr0 = {i:v for (i,v) in Xtr0.items() if i<50}
 #Ytr0 = Ytr0[:50]
