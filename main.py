@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from submission import *
-from algorithms.svm import SVM
 from kernels.fast_spectrum_kernel import SpectrumKernel
 from kernels.linear_kernel import LinearKernel
 import time
@@ -37,6 +36,10 @@ Ytr2 = pd.read_csv('./data/Ytr2.csv', sep=',', header=0)
 Ytr2 = Ytr2['Bound'].values
 Ytr2 = 2*Ytr2-1
 
+X0_train, X0_val, y0_train, y0_val = train_val_split(Xtr0, Ytr0)
+X1_train, X1_val, y1_train, y1_val = train_val_split(Xtr1, Ytr1)
+X2_train, X2_val, y2_train, y2_val = train_val_split(Xtr2, Ytr2)
+
 ###############################################################################
 ##############################  TRAIN SESSION #################################
 ###############################################################################
@@ -44,49 +47,42 @@ Ytr2 = 2*Ytr2-1
 print(">>> Set 0")
 k0 = 5
 lbd0 = 0.03
+kernel0 = SpectrumKernel(k0)
 
-svm0 = SVM(SpectrumKernel(k0), center=False)
-svm0.train(Xtr0, Ytr0, lbd0)
-# Training accuracy
-print("Training accuracy:", svm0.score_train())
-#print("Training accuracy:", svm0.score(Xtr0,Ytr0)) #check
+svm0 = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
 
 ###############################################################################
 print(">>> Set 1")
 k1 = 7
 lbd1 = 0.02
+kernel1 = SpectrumKernel(k1)
 
-svm1 = SVM(SpectrumKernel(k1), center=False)
-svm1.train(Xtr1, Ytr1, lbd1)
-# Training accuracy
-print("Training accuracy:", svm1.score_train())
+svm1 = SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, lbd1)
 
 ###############################################################################
 print(">>> Set 2")
 
 lbd2 = 0.245
 k2 = 4
+kernel2 = SpectrumKernel(k2)
 
-svm2 = SVM(SpectrumKernel(k2), center=False)
-svm2.train(Xtr2, Ytr2, lbd2)
-# Training accuracy
-print("Training accuracy:", svm2.score_train())
+svm2 = SVM_prediction(X2_train, X2_val, y2_train, y2_val, kernel2, lbd2)
 
 ###############################################################################
 ##############################  TEST SESSION ##################################
 ###############################################################################
 
 
-Xte0 = pd.read_csv('./data/Xte0.csv', sep=',', header=0)
-Xte0 = Xte0['seq'].values
-
-Xte1 = pd.read_csv('./data/Xte1.csv', sep=',', header=0)
-Xte1 = Xte1['seq'].values
-
-Xte2 = pd.read_csv('./data/Xte2.csv', sep=',', header=0)
-Xte2 = Xte2['seq'].values
-
-generate_submission_file("Yte_spectrum_v0.csv", svm0, svm1, svm2, Xte0, Xte1, Xte2)
+# Xte0 = pd.read_csv('./data/Xte0.csv', sep=',', header=0)
+# Xte0 = Xte0['seq'].values
+#
+# Xte1 = pd.read_csv('./data/Xte1.csv', sep=',', header=0)
+# Xte1 = Xte1['seq'].values
+#
+# Xte2 = pd.read_csv('./data/Xte2.csv', sep=',', header=0)
+# Xte2 = Xte2['seq'].values
+#
+# generate_submission_file("Yte_spectrum_v0.csv", svm0, svm1, svm2, Xte0, Xte1, Xte2)
 
 
 
