@@ -1,9 +1,9 @@
 from kernels.fast_kernel import FastKernel
 import numpy as np
+from scipy.sparse import csr_matrix, lil_matrix
 
-class SpectrumKernel(FastKernel):
+class SpectrumKernel():
     def __init__(self, k):
-        super().__init__()
         self.k = k
         self.index = {"A": 0, "C": 1, "G": 2, "T": 3}
     
@@ -13,9 +13,19 @@ class SpectrumKernel(FastKernel):
         return np.dot(np.array(word), np.power(4, np.arange(self.k)))
     
     def compute_feature_vector(self, X):
-        #TODO Maybe need sparse matrix for k very large
-        features =  np.zeros((X.shape[0], 4 ** self.k))
+        features =  lil_matrix((X.shape[0], 4 ** self.k))
         for i, line in enumerate(X):
             for j in range(len(line) - self.k + 1):
                 features[i, self.compute_index(list(line[j:j + self.k]))] += 1 
-        return features
+        return csr_matrix(features)
+    
+    def compute_train(self, data_train):
+        feature_vector = self.compute_feature_vector(data_train)
+        return np.dot(feature_vector, feature_vector.T).toarray()
+
+    def compute_test(self, data_train, data_test):
+        feature_vector_train = self.compute_feature_vector(data_train)
+        feature_vector_test = self.compute_feature_vector(data_test)
+        return np.dot(feature_vector_test, feature_vector_train.T).toarray()
+
+
