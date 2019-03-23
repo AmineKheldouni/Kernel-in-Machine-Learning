@@ -1,6 +1,5 @@
 import numpy as np
 from cvxopt import matrix, solvers
-from kernels.centered_kernel import *
 import math
 
 EPS = math.pow(10,-5)
