@@ -19,7 +19,6 @@ Xtr0 = Xtr0['seq'].values
 
 Ytr0 = pd.read_csv('./data/Ytr0.csv', sep=',', header=0)
 Ytr0 = Ytr0['Bound'].values
-# Map the 0/1 labels to -1/1
 Ytr0 = 2*Ytr0-1
 
 # Read training set 1
@@ -99,5 +98,5 @@ print("Valudation accuracy:", val_acc)
 
 
 ##########
-#Xtr0 = {i:v for (i,v) in Xtr0.items() if i<50} 
+#Xtr0 = {i:v for (i,v) in Xtr0.items() if i<50}
 #Ytr0 = Ytr0[:50]
