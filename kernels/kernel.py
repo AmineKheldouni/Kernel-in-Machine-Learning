@@ -9,7 +9,8 @@ from tqdm import tqdm
 
 class Kernel(ABC):
 
-    def __init__(self):
+    def __init__(self, normalize=True):
+        self.normalize = normalize
         return
 
     @abstractmethod
@@ -27,8 +28,18 @@ class Kernel(ABC):
                 pairs.append((i,j))
         for (i,j) in tqdm(pairs):
                 K[j, i] = self.evaluate(Xtr[i], Xtr[j])
+
         # Symmetrize Kernel
         K = K + K.T - np.diag(K.diagonal())
+
+        if self.normalize:
+            D = np.diag(K.diagonal())
+            print(D.shape)
+            normalization_term = np.sqrt(D.dot(D.T)) + 1e-40
+            print(normalization_term)
+            K /= normalization_term
+            print("K:", K)
+
         end = time.time()
         print("Time elapsed: {0:.2f}".format(end - start))
         return K
@@ -45,6 +56,13 @@ class Kernel(ABC):
                 pairs.append((k,j))
         for (k,j) in tqdm(pairs):
             K_t[k, j] = self.evaluate(Xte[k], Xtr[j])
+
+
+        if self.normalize:
+            D = np.diag(K_t.diagonal())
+            normalization_term = np.sqrt(D.dot(D.T))
+            K_t = np.divide(K_t, normalization_term)
+
         end = time.time()
         print("Time elapsed: {0:.2f}".format(end - start))
         return K_t

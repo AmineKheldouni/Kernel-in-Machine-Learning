@@ -7,8 +7,8 @@ from kernels.kernel import *
 class SpectrumKernel(Kernel):
     """ SpectrumKernel class """
 
-    def __init__(self, k, EOW = '$'):
-        super().__init__()
+    def __init__(self, k, EOW = '$', normalize=True):
+        super().__init__(normalize)
         self.k = k
         # Prefix symbol
         self.EOW = '$'

@@ -5,8 +5,8 @@
 from kernels.kernel import *
 
 class CenteredKernel(Kernel):
-    def __init__(self, kernel):
-        super().__init__()
+    def __init__(self, kernel, normalize=True):
+        super().__init__(normalize)
         self.kernel = kernel
         self.eta = None
 
