@@ -6,14 +6,11 @@ def SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001):
     svm = SVM(kernel, center=False)
     svm.train(data_train, y_train, lbd)
 
-    print("Training accuracy:", svm.score_train())
-
     predictions = np.array(np.sign(svm.predict(data_val)), dtype=int)
-    print("validation accuracy:", (y_val == predictions).mean())
 
     assert (predictions != 0).all()
 
-    return svm
+    return svm, svm.score_train(), (y_val == predictions).mean()
 
 def train_val_split(data, y, split = 300):
     permutation = np.random.permutation(len(data))

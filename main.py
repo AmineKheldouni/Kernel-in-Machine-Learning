@@ -51,7 +51,9 @@ k0 = 5
 lbd0 = 0.03
 kernel0 = SpectrumKernel(k0)
 
-svm0 = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
+svm0, train_acc, val_acc = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
+print("Training accuracy:", train_acc)
+print("Valudation accuracy:", val_acc)
 
 ###############################################################################
 print(">>> Set 1")
@@ -59,7 +61,10 @@ k1 = 7
 lbd1 = 0.02
 kernel1 = SpectrumKernel(k1)
 
-svm1 = SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, lbd1)
+svm1, train_acc, val_acc = SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, lbd1)
+print("Training accuracy:", train_acc)
+print("Valudation accuracy:", val_acc)
+
 
 ###############################################################################
 print(">>> Set 2")
@@ -68,7 +73,10 @@ lbd2 = 0.245
 k2 = 4
 kernel2 = SpectrumKernel(k2)
 
-svm2 = SVM_prediction(X2_train, X2_val, y2_train, y2_val, kernel2, lbd2)
+svm2, train_acc, val_acc = SVM_prediction(X2_train, X2_val, y2_train, y2_val, kernel2, lbd2)
+print("Training accuracy:", train_acc)
+print("Valudation accuracy:", val_acc)
+
 
 ###############################################################################
 ##############################  TEST SESSION ##################################
