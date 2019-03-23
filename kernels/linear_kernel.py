@@ -5,7 +5,6 @@
 from kernels.fast_kernel import FastKernel
 import numpy as np
 
-
 class LinearKernel(FastKernel):
     def __init__(self):
         super().__init__()
