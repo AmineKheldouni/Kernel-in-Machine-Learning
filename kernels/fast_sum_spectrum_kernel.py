@@ -1,6 +1,7 @@
 from kernels.fast_kernel import FastKernel
 import numpy as np
 from kernels.fast_spectrum_kernel import SpectrumKernel
+import scipy.sparse as ss
 
 class SumSpectrumKernel(FastKernel):
     def __init__(self, list_k):
@@ -19,6 +20,26 @@ class SumSpectrumKernel(FastKernel):
         features = self.kernels[0].compute_feature_vector(X)
         for i in range(1, len(self.kernels)):
             kernel_feature = self.kernels[i].compute_feature_vector(X)
-            features = np.concatenate((features, kernel_feature), axis = 1)
+            features = ss.vstack(([features, kernel_feature])).toarray()
         print("Shape of features from SSK: {}".format(features.shape))
         return features
+
+    def compute_train(self, data_train):
+        K = 0
+        for i in range(len(self.kernels)):
+            K += self.kernels[i].compute_train(data_train)
+
+        normalization = np.sqrt(K.diagonal()).reshape(-1,1).dot(np.sqrt(K.diagonal()).reshape(1,-1))
+        print("normalization test:", normalization.shape)
+
+        return K/normalization
+
+    def compute_test(self, data_train, data_test):
+        K = 0
+        for i in range(len(self.kernels)):
+            K += self.kernels[i].compute_test(data_train, data_test)
+
+        normalization = np.sqrt(K.diagonal()).reshape(-1,1).dot(np.sqrt(K.diagonal()).reshape(1,-1))
+        print("normalization test:", normalization.shape)
+
+        return K/normalization
