@@ -6,10 +6,10 @@ import pandas as pd
 
 from submission import *
 from kernels.fast_spectrum_kernel import SpectrumKernel
-from kernels.fast_sum_spectrum_kernel import SumSpectrumKernel
-from kernels.linear_kernel import LinearKernel
-from kernels.levenshtein_kernel import LevenshteinKernel
-from kernels.rbf_kernel import RBFKernel
+#from kernels.fast_sum_spectrum_kernel import SumSpectrumKernel
+#from kernels.linear_kernel import LinearKernel
+#from kernels.levenshtein_kernel import LevenshteinKernel
+#from kernels.rbf_kernel import RBFKernel
 import time
 from utils import *
 
@@ -47,11 +47,11 @@ X2_train, X2_val, y2_train, y2_val = train_val_split(Xtr2, Ytr2)
 ##############################################################################
 
 print(">>> Set 0")
-# k0 = 5
-k0 = [1,2,3,4,5,6,7,8]
+k0 = 5
+#k0 = [1,2,3,4,5,6,7,8]
 lbd0 = 0.03
-# kernel0 = SpectrumKernel(k0)
-kernel0 = SumSpectrumKernel(k0)
+kernel0 = SpectrumKernel(k0,  normalize=True)
+#kernel0 = SumSpectrumKernel(k0)
 
 svm0, train_acc, val_acc = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
 print("Training accuracy:", train_acc)

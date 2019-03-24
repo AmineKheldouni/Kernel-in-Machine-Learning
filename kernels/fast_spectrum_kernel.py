@@ -1,11 +1,13 @@
-from kernels.fast_kernel import FastKernel
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
+from kernels.fast_kernel import FastKernel
 
-class SpectrumKernel():
-    def __init__(self, k):
+class SpectrumKernel(FastKernel):
+    def __init__(self, k, normalize=False):
+        super().__init__()
         self.k = k
         self.index = {"A": 0, "C": 1, "G": 2, "T": 3}
+        self.normalize = normalize
 
     def compute_index(self, word):
         for i in range(len(word)):
@@ -22,18 +24,14 @@ class SpectrumKernel():
     def compute_train(self, data_train):
         feature_vector = self.compute_feature_vector(data_train)
         K = np.dot(feature_vector, feature_vector.T).toarray()
-
-        normalization = np.sqrt(K.diagonal()).reshape(-1,1).dot(np.sqrt(K.diagonal()).reshape(1,-1))
-        print("normalization test:", normalization.shape)
-
-        return K/normalization
+        if self.normalize:
+            K = self.normalize_train(K)
+        return K
         
     def compute_test(self, data_train, data_test):
         feature_vector_train = self.compute_feature_vector(data_train)
         feature_vector_test = self.compute_feature_vector(data_test)
         K = np.dot(feature_vector_test, feature_vector_train.T).toarray()
-
-        normalization = np.sqrt(K.diagonal()).reshape(-1,1).dot(np.sqrt(K.diagonal()).reshape(1,-1))
-        print("normalization test:", normalization.shape)
-
-        return K/normalization
+        if self.normalize:
+            K = self.normalize_test(K, feature_vector_test)
+        return K

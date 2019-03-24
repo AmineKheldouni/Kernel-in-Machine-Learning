@@ -28,18 +28,11 @@ class SumSpectrumKernel(FastKernel):
         K = 0
         for i in range(len(self.kernels)):
             K += self.kernels[i].compute_train(data_train)
-
-        normalization = np.sqrt(K.diagonal()).reshape(-1,1).dot(np.sqrt(K.diagonal()).reshape(1,-1))
-        print("normalization test:", normalization.shape)
-
-        return K/normalization
+        return K
 
     def compute_test(self, data_train, data_test):
         K = 0
         for i in range(len(self.kernels)):
             K += self.kernels[i].compute_test(data_train, data_test)
-
-        normalization = np.sqrt(K.diagonal()).reshape(-1,1).dot(np.sqrt(K.diagonal()).reshape(1,-1))
-        print("normalization test:", normalization.shape)
-
-        return K/normalization
+            #give the option to normalize each kernel
+        return K
