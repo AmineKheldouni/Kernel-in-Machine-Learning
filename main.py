@@ -38,9 +38,9 @@ Ytr2 = pd.read_csv('./data/Ytr2.csv', sep=',', header=0)
 Ytr2 = Ytr2['Bound'].values
 Ytr2 = 2*Ytr2-1
 
-X0_train, X0_val, y0_train, y0_val = train_val_split(Xtr0, Ytr0, split = 1)
-X1_train, X1_val, y1_train, y1_val = train_val_split(Xtr1, Ytr1, split = 1)
-X2_train, X2_val, y2_train, y2_val = train_val_split(Xtr2, Ytr2, split = 1)
+X0_train, X0_val, y0_train, y0_val = train_val_split(Xtr0, Ytr0, split = 300)
+X1_train, X1_val, y1_train, y1_val = train_val_split(Xtr1, Ytr1, split = 300)
+X2_train, X2_val, y2_train, y2_val = train_val_split(Xtr2, Ytr2, split = 300)
 
 ##############################################################################
 #############################  TRAIN SESSION #################################
