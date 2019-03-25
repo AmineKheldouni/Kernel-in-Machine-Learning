@@ -31,7 +31,6 @@ class FastKernel(ABC):
         matrix_norms = np.outer(self.norms_train,self.norms_train) #10e-40
         K_train =  np.divide(K_train, matrix_norms)
         #print("diag", np.sum(np.diagonal(K_train)))
-        print("K_train",K_train)
         return K_train
 
     def normalize_test(self, K_test, feats_test): #K_test unormalized
@@ -40,5 +39,4 @@ class FastKernel(ABC):
         norms_test = norm(feats_test,axis=1)
         matrix_norms = np.outer(norms_test,self.norms_train) #+ 1e-40  # matrix sqrt(K(xtest,xtest)*K(xtrain,xtrain))
         K_test = np.divide(K_test, matrix_norms)
-        print("K_test",K_test)
         return K_test

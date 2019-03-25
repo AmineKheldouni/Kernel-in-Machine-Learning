@@ -8,7 +8,7 @@ class SumSpectrumKernel(FastKernel):
         super().__init__()
         self.list_k = list_k
         self.index = {"A": 0, "C": 1, "G": 2, "T": 3}
-        self.kernels = [SpectrumKernel(k) for k in list_k]
+        self.kernels = [SpectrumKernel(k, normalize=False) for k in list_k]
 
     def compute_index(self, word):
         for i in range(len(word)):

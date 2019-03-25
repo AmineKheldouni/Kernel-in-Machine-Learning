@@ -6,7 +6,7 @@ import pandas as pd
 
 from submission import *
 from kernels.fast_spectrum_kernel import SpectrumKernel
-#from kernels.fast_sum_spectrum_kernel import SumSpectrumKernel
+from kernels.fast_sum_spectrum_kernel import SumSpectrumKernel
 #from kernels.linear_kernel import LinearKernel
 #from kernels.levenshtein_kernel import LevenshteinKernel
 #from kernels.rbf_kernel import RBFKernel
@@ -38,20 +38,20 @@ Ytr2 = pd.read_csv('./data/Ytr2.csv', sep=',', header=0)
 Ytr2 = Ytr2['Bound'].values
 Ytr2 = 2*Ytr2-1
 
-X0_train, X0_val, y0_train, y0_val = train_val_split(Xtr0, Ytr0)
-X1_train, X1_val, y1_train, y1_val = train_val_split(Xtr1, Ytr1)
-X2_train, X2_val, y2_train, y2_val = train_val_split(Xtr2, Ytr2)
+X0_train, X0_val, y0_train, y0_val = train_val_split(Xtr0, Ytr0, split = 1)
+X1_train, X1_val, y1_train, y1_val = train_val_split(Xtr1, Ytr1, split = 1)
+X2_train, X2_val, y2_train, y2_val = train_val_split(Xtr2, Ytr2, split = 1)
 
 ##############################################################################
 #############################  TRAIN SESSION #################################
 ##############################################################################
 
 print(">>> Set 0")
-k0 = 5
-#k0 = [1,2,3,4,5,6,7,8]
-lbd0 = 0.03
-kernel0 = SpectrumKernel(k0,  normalize=True)
-#kernel0 = SumSpectrumKernel(k0)
+# k0 = 5
+k0 = [1,2,3,4,5,6,7,8]
+lbd0 = 0.067
+# kernel0 = SpectrumKernel(k0,  normalize=True)
+kernel0 = SumSpectrumKernel(k0)
 
 svm0, train_acc, val_acc = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
 print("Training accuracy:", train_acc)
@@ -60,7 +60,7 @@ print("Valudation accuracy:", val_acc)
 ###############################################################################
 print(">>> Set 1")
 k1 = [1,2,3,4,5,6,7,8]
-lbd1 = 0.02
+lbd1 = 0.025
 kernel1 = SumSpectrumKernel(k1)
 
 svm1, train_acc, val_acc = SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, lbd1)
@@ -70,7 +70,7 @@ print("Valudation accuracy:", val_acc)
 ###############################################################################
 print(">>> Set 2")
 
-lbd2 = 0.095
+lbd2 = 0.098
 k2 = [1, 2, 3, 4, 5, 6, 7, 8]
 kernel2 = SumSpectrumKernel(k2)
 
@@ -84,21 +84,13 @@ print("Valudation accuracy:", val_acc)
 ###############################################################################
 
 
-# Xte0 = pd.read_csv('./data/Xte0.csv', sep=',', header=0)
-# Xte0 = Xte0['seq'].values
-#
-# Xte1 = pd.read_csv('./data/Xte1.csv', sep=',', header=0)
-# Xte1 = Xte1['seq'].values
-#
-# Xte2 = pd.read_csv('./data/Xte2.csv', sep=',', header=0)
-# Xte2 = Xte2['seq'].values
-#
-# generate_submission_file("Yte_spectrum_v0.csv", svm0, svm1, svm2, Xte0, Xte1, Xte2)
+Xte0 = pd.read_csv('./data/Xte0.csv', sep=',', header=0)
+Xte0 = Xte0['seq'].values
 
+Xte1 = pd.read_csv('./data/Xte1.csv', sep=',', header=0)
+Xte1 = Xte1['seq'].values
 
+Xte2 = pd.read_csv('./data/Xte2.csv', sep=',', header=0)
+Xte2 = Xte2['seq'].values
 
-
-
-##########
-#Xtr0 = {i:v for (i,v) in Xtr0.items() if i<50}
-#Ytr0 = Ytr0[:50]
+generate_submission_file("Yte_ssk.csv", svm0, svm1, svm2, Xte0, Xte1, Xte2)
