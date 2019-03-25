@@ -28,12 +28,14 @@ def matches(word, i):
     
 
 class MismatchSpectrumKernel(FastKernel):
-    def __init__(self, k, m=1):
-        super().__init__()
+    def __init__(self, k, m=1, normalize = False):
+        super().__init__(normalize)
         self.k = k
         self.m = m
         all_elements = self.all_elements(k)
         self.index = dict(zip(all_elements, np.arange(len(all_elements))))
+        self.K_train = None
+        self.K_test = None
     
     def compute_feature_vector(self, X):
         if self.k < 9:
@@ -51,13 +53,25 @@ class MismatchSpectrumKernel(FastKernel):
         return csr_matrix(features)
     
     def compute_train(self, data_train):
+        if not self.K_train is None:
+            return self.K_train
         feature_vector = self.compute_feature_vector(data_train)
-        return np.dot(feature_vector, feature_vector.T).toarray()
+        K = np.dot(feature_vector, feature_vector.T).toarray()
+        if self.normalize:
+            K = self.normalize_train(K)
+        self.K_train = K
+        return K
 
     def compute_test(self, data_train, data_test):
+        if not self.K_test is None:
+            return self.K_test
         feature_vector_train = self.compute_feature_vector(data_train)
         feature_vector_test = self.compute_feature_vector(data_test)
-        return np.dot(feature_vector_test, feature_vector_train.T).toarray()
+        K = np.dot(feature_vector_test, feature_vector_train.T).toarray()
+        if self.normalize:
+            K = self.normalize_test(K, feature_vector_test)
+        self.K_test = K
+        return K
     
     def all_elements(self, i):
         if i == 1:
