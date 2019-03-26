@@ -16,14 +16,12 @@ class SVM:
         self.kernel = kernel
         self.center = center
 
-    def init_train(self, Xtr, Ytr):
+    def train(self, Xtr, Ytr, lbd=1):
+        n = len(Xtr)
+
         self.Xtr = Xtr
         self.Ytr = Ytr
         self.K = self.kernel.compute_train(self.Xtr)
-
-    def train(self, Xtr, Ytr, lbd=1):
-        n = len(Xtr)
-        self.init_train(Xtr, Ytr)
 
         print("Solving SVM optimization ...")
 

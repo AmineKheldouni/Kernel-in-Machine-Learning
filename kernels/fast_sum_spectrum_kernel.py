@@ -4,11 +4,11 @@ from kernels.fast_spectrum_kernel import SpectrumKernel
 import scipy.sparse as ss
 
 class SumSpectrumKernel(FastKernel):
-    def __init__(self, list_k):
+    def __init__(self, list_k, normalize=False):
         super().__init__()
         self.list_k = list_k
         self.index = {"A": 0, "C": 1, "G": 2, "T": 3}
-        self.kernels = [SpectrumKernel(k, normalize=False) for k in list_k]
+        self.kernels = [SpectrumKernel(k, normalize=normalize) for k in list_k]
 
     def compute_index(self, word):
         for i in range(len(word)):
