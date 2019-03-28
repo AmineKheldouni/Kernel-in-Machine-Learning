@@ -7,7 +7,7 @@ from copy import deepcopy
 def memoize(fun):
     memory = {}
     def helper(word, i):
-        if (str(word), i) not in memory:            
+        if (str(word), i) not in memory:
             memory[(str(word), i)] = fun(word, i)
         return memory[(str(word), i)]
     return helper
@@ -25,7 +25,7 @@ def matches(word, i):
                 new_word[j] = letter
                 matches_set.update(matches(new_word, i-1))
         return matches_set
-    
+
 
 class MismatchSpectrumKernel(FastKernel):
     def __init__(self, k, m=1, normalize = False):
@@ -36,25 +36,25 @@ class MismatchSpectrumKernel(FastKernel):
         self.index = dict(zip(all_elements, np.arange(len(all_elements))))
         self.K_train = None
         self.K_test = None
-    
+
     def compute_feature_vector(self, X):
         if self.k < 9:
             features =  np.zeros((X.shape[0], 4 ** self.k))
         else:
             features =  lil_matrix((X.shape[0], 4 ** self.k))
-            
+
         for i, line in enumerate(X):
             for j in range(len(line) - self.k + 1):
                 words = matches(list(line[j:j + self.k]), self.m)
                 indices = []
                 for word in words:
                     indices.append(self.index[word])
-                features[i, np.array(indices)] += np.ones(len(indices)) 
+                features[i, np.array(indices)] += np.ones(len(indices))
         return csr_matrix(features)
-    
+
     def compute_train(self, data_train):
-        if not self.K_train is None:
-            return self.K_train
+        # if not self.K_train is None:
+        #     return self.K_train
         feature_vector = self.compute_feature_vector(data_train)
         K = np.dot(feature_vector, feature_vector.T).toarray()
         if self.normalize:
@@ -72,7 +72,7 @@ class MismatchSpectrumKernel(FastKernel):
             K = self.normalize_test(K, feature_vector_test)
         self.K_test = K
         return K
-    
+
     def all_elements(self, i):
         if i == 1:
             return ["A", "C", "G", "T"]
@@ -82,4 +82,3 @@ class MismatchSpectrumKernel(FastKernel):
             for e in old_list:
                 new_list.extend([e + "A", e + "C", e + "G", e + "T"])
             return new_list
-    

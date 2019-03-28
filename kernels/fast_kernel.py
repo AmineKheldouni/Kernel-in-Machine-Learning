@@ -16,6 +16,7 @@ class FastKernel(ABC):
         K = np.dot(feature_vector, feature_vector.T)
         if self.normalize:
             K = self.normalize_train(K)
+        self.K = K
         return K
 
     def compute_test(self, data_train, data_test):
@@ -30,7 +31,6 @@ class FastKernel(ABC):
         self.norms_train = np.sqrt(K_train.diagonal())  # norms for x train vector
         matrix_norms = np.outer(self.norms_train,self.norms_train) #10e-40
         K_train =  np.divide(K_train, matrix_norms)
-        #print("diag", np.sum(np.diagonal(K_train)))
         return K_train
 
     def normalize_test(self, K_test, feats_test): #K_test unormalized
@@ -40,3 +40,9 @@ class FastKernel(ABC):
         matrix_norms = np.outer(norms_test,self.norms_train) #+ 1e-40  # matrix sqrt(K(xtest,xtest)*K(xtrain,xtrain))
         K_test = np.divide(K_test, matrix_norms)
         return K_test
+
+    def save_train(filename):
+        np.save(filename, self.K)
+
+    def load_train(filename):
+        self.K = np.load(filename)

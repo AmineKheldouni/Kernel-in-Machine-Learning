@@ -10,6 +10,7 @@ class SumKernel():
 
     def compute_train(self, data_train):
         K = 0
+        print("Compute K train ...")
         for i in range(len(self.kernels)):
             K += self.kernels[i].compute_train(data_train)
         return K
