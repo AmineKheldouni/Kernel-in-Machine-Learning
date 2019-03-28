@@ -52,3 +52,6 @@ class SVM:
     def score_train(self):
         f = np.sign(self.K.dot(self.alpha.reshape((self.alpha.size, 1))))
         return np.mean(f.reshape(-1) == self.Ytr)
+
+    def get_objective(self):
+        pass
