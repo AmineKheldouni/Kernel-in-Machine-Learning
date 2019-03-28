@@ -4,22 +4,25 @@ import math
 
 EPS = math.pow(10,-5)
 
-from cvxopt import matrix, solvers
+from sklearn import svm
 
-
-class SVM:
+class FastSVM:
     """
-        Implements Support Vector Machine.
+        Implements Support Vector Machine using sklearn.
+        This class is only for parameter tuning.
     """
 
     def __init__(self, kernel=None, center=False, train_filename = None):
         self.kernel = kernel
         self.center = center
 
+
     def train(self, Xtr, Ytr, lbd=1, verbose=True):
         n = len(Xtr)
         self.Xtr = Xtr
         self.Ytr = Ytr
+        self.svm = svm.SVC(C=1./lbd, kernel='precomputed')
+
         try:
             self.kernel.load_kernel(train_filename)
             self.K = self.kernel.K
@@ -28,19 +31,14 @@ class SVM:
                 print("Computing train kernel ...")
             self.K = self.kernel.compute_train(self.Xtr)
 
-        if verbose:
-            print("Solving SVM optimization ...")
+        self.svm.fit(self.K, Ytr)
+        support = self.svm.support_
+        dc = self.svm.dual_coef_
+        self.alpha = np.zeros(Xtr.shape[0])
+        for idx, s in enumerate(support):
+            self.alpha[s] = dc[0,idx]
 
-        P = matrix(self.K, tc='d')
-        q = matrix(-Ytr, tc='d')
-        G = matrix(np.append(np.diag(-Ytr.astype(float)), np.diag(Ytr.astype(float)), axis=0), tc='d')
-        h = matrix(np.append(np.zeros(n), np.ones(n, dtype=float) / (2 * lbd * n), axis=0), tc='d')
-        solvers.options['show_progress'] = False
-        self.alpha = np.array(solvers.qp(P, q, G, h)['x'])
-        self.alpha[np.abs(self.alpha) < EPS] = 0
-        print("@@@@@@@@@@ ", self.alpha.shape)
-        if verbose:
-            print("SVM solved !")
+        self.alpha = self.alpha.reshape(-1,1)
 
     def get_training_results(self):
         f = np.sign(self.K.dot(self.alpha.reshape((self.alpha.size, 1))))
@@ -60,4 +58,5 @@ class SVM:
 
     def get_objective(self, Ytr):
         tmp = (self.alpha.flatten() * Ytr)[:,None]
+        print("somme alpha: ", np.sum(self.alpha))
         return -0.5*tmp.T.dot(self.K).dot(tmp)[0,0] + np.sum(self.alpha)
