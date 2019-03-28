@@ -12,21 +12,18 @@ class SVM:
         Implements Support Vector Machine.
     """
 
-    def __init__(self, kernel=None, center=False, train_filename = None):
+    def __init__(self, kernel=None, center=False):
         self.kernel = kernel
         self.center = center
 
-    def train(self, Xtr, Ytr, lbd=1):
-        n = len(Xtr)
-
+    def init_train(self, Xtr, Ytr):
         self.Xtr = Xtr
         self.Ytr = Ytr
-        try:
-            self.kernel.load_kernel(filename)
-            self.K = self.kernel.K
-        except:
-            print("Computing train kernel ...")
-            self.K = self.kernel.compute_train(self.Xtr)
+        self.K = self.kernel.compute_train(self.Xtr)
+
+    def train(self, Xtr, Ytr, lbd=1):
+        n = len(Xtr)
+        self.init_train(Xtr, Ytr)
 
         print("Solving SVM optimization ...")
 
@@ -57,4 +54,5 @@ class SVM:
         return np.mean(f.reshape(-1) == self.Ytr)
 
     def get_objective(self):
-        pass
+        return -0.5*self.alpha.T.dot(self.K).dot(self.alpha)[0,0]
+
