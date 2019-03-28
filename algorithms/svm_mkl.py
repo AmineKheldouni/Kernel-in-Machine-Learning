@@ -20,11 +20,6 @@ class MKL_SVM:
         self.nb_kernels = self.WS_kernel.nb_kernels
         self.center = center
 
-    def init_train(self, Xtr, Ytr):
-        self.Xtr = Xtr
-        self.Ytr = Ytr
-        self.WS_kernel.precompute_train(Xtr)
-
     def get_grad_objective(self, alphas):
         grad = np.zeros(self.nb_kernels)
         for i in range(self.nb_kernels):
@@ -45,6 +40,9 @@ class MKL_SVM:
         return descent_directions
 
     def train(self, Xtr, Ytr, lbd=1, tol = 0.01, viz=True):
+        self.Xtr = Xtr
+        self.Ytr = Ytr
+        self.WS_kernel.precompute_train(Xtr)
 
         if viz: print("init etas : ", self.etas)
 
@@ -60,7 +58,6 @@ class MKL_SVM:
             print("Iteration "+str(count_iters)+"\n")
 
             svm = SVM(kernel = self.WS_kernel)
-            svm.init_train(Xtr, Ytr)
             svm.train(Xtr, Ytr, lbd=lbd)
             target = svm.get_objective()
             grad_target = self.get_grad_objective(svm.alpha)
@@ -96,7 +93,6 @@ class MKL_SVM:
                     break
                 self.WS_kernel.etas = self.etas + step_max*D
                 svm = SVM(kernel = self.WS_kernel)
-                svm.init_train(Xtr, Ytr)
                 svm.train(Xtr, Ytr, lbd=lbd)
                 new_target = svm.get_objective()
 
@@ -120,7 +116,6 @@ class MKL_SVM:
                 if viz: print("New best stepsize found")
                 self.WS_kernel.etas  = self.etas + trial_step * D #TODO :updated etas : right ? (or old etas)
                 svm = SVM(kernel=self.WS_kernel)
-                svm.init_train(Xtr, Ytr)
                 svm.train(Xtr, Ytr, lbd=lbd)
                 new_target = svm.get_objective()
                 if new_target > best_step_target:
@@ -138,7 +133,6 @@ class MKL_SVM:
 
         self.WS_kernel.etas = self.etas
         self.svm = SVM(kernel=self.WS_kernel)
-        self.svm.init_train(Xtr, Ytr)
         self.svm.train(Xtr, Ytr, lbd=lbd)
 
         print("MKL - SVM solved !")
