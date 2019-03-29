@@ -1,6 +1,7 @@
 import numpy as np
-from algorithms.svm import SVM
-from algorithms.fast_svm import FastSVM
+
+#from algorithms.svm import SVM
+from algorithms.fast_svm import FastSVM as SVM
 
 def SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001, svm_function=SVM):
 
@@ -45,7 +46,7 @@ def kfold_cross_validation(data, predictions, kernels, list_lambda, k=10):
                                                          y_val,
                                                          kernels[d],
                                                          list_lambda[j],
-                                                         svm_function=FastSVM)
+                                                         svm_function=SVM)
                 print("Training accuracy:", train_acc)
                 print("Valudation accuracy:", val_acc)
                 print("######")

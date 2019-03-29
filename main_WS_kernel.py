@@ -13,7 +13,10 @@ import time
 from utils import *
 
 from algorithms.svm_mkl import MKL_SVM
+
 from kernels.weighted_sum_kernel import WeightedSumKernel
+
+from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
 
 
 def MKL_SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001):
@@ -21,11 +24,12 @@ def MKL_SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001):
     svm = MKL_SVM(kernel, center=False)
     svm.train(data_train, y_train, lbd=lbd, tol = 0.01)
 
-    predictions = np.array(np.sign(svm.predict(data_val)), dtype=int)
+    res = svm.predict(data_val)
+    predictions = np.array(np.sign(res), dtype=int)
 
     assert (predictions != 0).all()
 
-    return svm, svm.score_train(), (y_val == predictions).mean()
+    return svm, svm.score_train(), (np.array(y_val) == predictions).mean()
 
 
 # Read training set 0
@@ -72,29 +76,34 @@ Xte2 = Xte2['seq'].values
 
 print(">>> Set 0")
 # k0 = 5
-kernel00 = SpectrumKernel(8, normalize = True)
-kernel01 = SpectrumKernel(5, normalize = True)
-kernel02 = SpectrumKernel(4, normalize = True)
-kernel0 = WeightedSumKernel([kernel00, kernel01, kernel02])
 
-svm0, train_acc, val_acc = MKL_SVM_prediction(Xtr0, Xte0, Ytr0, Ytr0, kernel0, 0.11)
+#CONVERGES ON THIS INSTANCE
+kernel02 = MismatchSpectrumKernel(4, 2, normalize = True)
+kernel03 = MismatchSpectrumKernel(4, 1, normalize = True)
+kernel04 = MismatchSpectrumKernel(4, 0, normalize = True)
+kernel0 = WeightedSumKernel([kernel02, kernel03, kernel04])
+
+svm0, train_acc, val_acc = MKL_SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, 0.1)
 
 print("Training accuracy:", train_acc)
 print("Valudation accuracy:", val_acc)
 
 ###############################################################################
+
+print("\n###################\n")
 print(">>> Set 1")
 kernel00 = SpectrumKernel(8, normalize = True)
 kernel01 = SpectrumKernel(5, normalize = True)
 kernel02 = SpectrumKernel(4, normalize = True)
 kernel1 = WeightedSumKernel([kernel00, kernel01, kernel02])
 
-svm1, train_acc, val_acc = MKL_SVM_prediction(Xtr1, Xte1, Ytr1, Ytr1, kernel1, 0.2)
+svm1, train_acc, val_acc = MKL_SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, 0.2)
 print("Training accuracy:", train_acc)
 print("Valudation accuracy:", val_acc)
 
 ###############################################################################
-# print(">>> Set 2")
+print("\n###################\n")
+print(">>> Set 2")
 #
 
 kernel00 = SpectrumKernel(8, normalize = True)

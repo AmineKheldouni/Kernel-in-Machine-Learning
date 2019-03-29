@@ -25,9 +25,22 @@ class MKL_SVM:
         grad = np.zeros(self.nb_kernels)
         for i in range(self.nb_kernels):
             grad[i] = alphas.T.dot(self.WS_kernel.K_trains[i]).dot(alphas)[0,0]
-        return - 0.5 * grad
+        return + 0.5 * grad
 
-    def train(self, Xtr, Ytr, lbd=1, tol = 0.01, viz=True):
+    def get_descent_direction(self, grad_target, mu):
+        descent_directions = np.zeros(self.nb_kernels)
+        sum_grad_diff_for_pos_etas = 0
+        for i in range(self.nb_kernels):
+            grad_diff = grad_target[i] - grad_target[mu]
+            if (self.WS_kernel.etas[i] == 0) and (grad_diff > 0):
+                descent_directions[i] = 0
+            elif (self.WS_kernel.etas[i] > 0) and (mu != i):
+                sum_grad_diff_for_pos_etas += grad_diff
+                descent_directions[i] = -grad_diff
+        descent_directions[mu] = sum_grad_diff_for_pos_etas
+        return descent_directions
+
+    def train(self, Xtr, Ytr, lbd=1, tol = 0.1, viz=False):
 
         self.Xtr = Xtr
         self.Ytr = Ytr
@@ -39,12 +52,15 @@ class MKL_SVM:
         criteria_not_met = True
 
         while criteria_not_met:
+
+            old_etas = self.etas.copy()
+
             print("###########################")
             count_iters += 1
             print("Iteration " + str(count_iters) + "\n")
 
             svm = SVM(kernel = self.WS_kernel)
-            svm.train(Xtr, Ytr, lbd=lbd)
+            svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
             target = svm.get_objective(Ytr)
             print("Target: ", target)
 
@@ -54,8 +70,9 @@ class MKL_SVM:
 
             grad_target = self.get_grad_objective(svm.alpha)
             mu = self.etas.argmax()
-            D = compute_descent_direction(self.etas, grad_target, mu)
-            D = fix_precision_of_vector(D, 0)
+            D = self.get_descent_direction(grad_target, mu)
+            #D = compute_descent_direction(self.etas, grad_target, mu)
+            #D = fix_precision_of_vector(D, 0)
 
             target_cross = -math.inf
             etas_cross = self.etas.copy()
@@ -70,7 +87,7 @@ class MKL_SVM:
 
                 self.WS_kernel.etas = self.etas.copy()
                 svm = SVM(kernel=self.WS_kernel)
-                svm.train(Xtr, Ytr, lbd=lbd)
+                svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
                 #target_cross = svm.get_objective(Ytr)
 
                 step_max = math.inf
@@ -82,28 +99,35 @@ class MKL_SVM:
                             step_max = d_D_quotient
                             nu = m
 
+                if viz:
+                    print("Gradient Dir D", D)
+                    print("Dmu ", D[mu])
+                    print("Dnu ", D[nu])
+                    # print("Dmu + Dnu ", D[mu] + D[nu])
+
                 if (max(D) < EPS):
-                    print("D all zero")
+                    if viz: print("D all zero")
                     break
 
                 etas_cross = self.etas + step_max * D
 
-                etas_cross[nu] = 0
-                print("D", D)
-                print("Dmu ", D[mu])
-                print("Dnu ", D[nu])
-                print("Dmu + Dnu ", D[mu] + D[nu])
+                #etas_cross[nu] = 0
+                if mu!=nu:
+                    if viz: print(D_cross)
+                    D_cross[mu] = D[mu] + D[nu] #should not be minus
+                    D_cross[nu] = 0
+                    if viz: print(D_cross)
+                else:
+                    if viz: print("mu=nu")
+                    break
 
-                D_cross[mu] = D[mu] + D[nu] #should not be minus
-                D_cross[nu] = 0
-
-                etas_cross = fix_precision_of_vector(etas_cross, 1)
-                D_cross = fix_precision_of_vector(D_cross, 0)
-                print("bis", D_cross[mu])
+                #etas_cross = fix_precision_of_vector(etas_cross, 1)
+                #D_cross = fix_precision_of_vector(D_cross, 0)
+                #print("bis", D_cross[mu])
 
                 self.WS_kernel.etas = etas_cross.copy()
                 svm = SVM(kernel=self.WS_kernel)
-                svm.train(Xtr, Ytr, lbd=lbd)
+                svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
                 target_cross = svm.get_objective(Ytr)
 
             # PART 2 : computing optimal stepsize
@@ -113,31 +137,35 @@ class MKL_SVM:
 
             if viz: print("\n Compute optimal stepsize D")
 
-            trials_steps = np.linspace(0, step_max, 3)
-            best_step = None
-            best_step_target = -math.inf
-            for trial_step in trials_steps:
-                # if viz: print("New best stepsize found")
-                self.WS_kernel.etas = self.etas + trial_step * D
-                self.WS_kernel.etas = fix_precision_of_vector(self.WS_kernel.etas, 1)
+            best_step = step_max
+            m = D.T.dot(grad_target)
+            divide_again = True
+            if viz: print("step max :", best_step)
+            counter_armijo = 0
+            while divide_again:
+                self.WS_kernel.etas = self.etas + best_step * D
                 svm = SVM(kernel=self.WS_kernel)
-                svm.train(Xtr, Ytr, lbd=lbd)
+                svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
                 new_target = svm.get_objective(Ytr)
-                if new_target >= best_step_target:
-                    best_step = trial_step
-                    best_step_target = new_target
-
-            # gamma = helpers.get_armijos_step_size(kernel_matrices, d, y_mat, alpha,
-            #                                  box_constraints, gamma_max, J_cross,
-            #D, dJ)
+                if new_target <= target_cross + step_max * 0.5 * m:
+                    divide_again = False
+                else:
+                    # Update gamma
+                    best_step = best_step * 0.5
+                counter_armijo += 1
+                if counter_armijo>10:
+                    best_step = 0
+                    break
+            if viz: print("chosen step (Armijo) :", best_step)
 
             delta_etas = best_step * D
             self.etas += delta_etas
-            self.etas = fix_precision_of_vector(self.etas, 1)
+            #self.etas = fix_precision_of_vector(self.etas, 1)
 
             print("new etas : ", self.etas)
 
-            criteria_not_met = (max(D) > EPS) and not(stopping_criterion(False,grad_target, self.etas, tol))
+            criteria_not_met = np.linalg.norm(old_etas-self.etas) > EPS
+            #criteria_not_met = (max(D) > EPS) and not(stopping_criterion(False,grad_target, self.etas, tol))
 
         if viz: print("final etas : ", self.WS_kernel.etas)
 
@@ -145,7 +173,7 @@ class MKL_SVM:
 
         self.WS_kernel.etas = self.etas.copy()
         self.svm = SVM(kernel=self.WS_kernel)
-        self.svm.train(Xtr, Ytr, lbd=lbd)
+        self.svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
 
         print("MKL - SVM solved !")
 
@@ -157,3 +185,4 @@ class MKL_SVM:
 
     def score_train(self):
         return self.svm.score_train()
+
