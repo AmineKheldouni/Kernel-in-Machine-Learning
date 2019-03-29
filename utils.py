@@ -54,3 +54,7 @@ def kfold_cross_validation(data, predictions, kernels, list_lambda, k=10):
 
     print("####################################")
     return scores, np.mean(scores,axis=0)
+
+def train_val_split_fixed(data, y, rate=0.8):
+    n=  len(data)
+    return data[:rate*n], data[rate*n:], y[:rate*n], y[rate*n:]
