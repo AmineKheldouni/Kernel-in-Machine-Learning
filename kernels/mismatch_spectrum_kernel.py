@@ -63,8 +63,6 @@ class MismatchSpectrumKernel(FastKernel):
         return K
 
     def compute_test(self, data_train, data_test):
-        if not self.K_test is None:
-            return self.K_test
         feature_vector_train = self.compute_feature_vector(data_train)
         feature_vector_test = self.compute_feature_vector(data_test)
         K = np.dot(feature_vector_test, feature_vector_train.T).toarray()
