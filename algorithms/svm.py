@@ -38,7 +38,6 @@ class SVM:
         solvers.options['show_progress'] = False
         self.alpha = np.array(solvers.qp(P, q, G, h)['x'])
         self.alpha[np.abs(self.alpha) < EPS] = 0
-        print("@@@@@@@@@@ ", self.alpha.shape)
         if verbose:
             print("SVM solved !")
 
@@ -59,5 +58,4 @@ class SVM:
         return np.mean(f.reshape(-1) == self.Ytr)
 
     def get_objective(self, Ytr):
-        tmp = (self.alpha.flatten() * Ytr)[:,None]
-        return -0.5*tmp.T.dot(self.K).dot(tmp)[0,0] + np.sum(self.alpha)
+        return -0.5 * self.alpha.T.dot(self.K).dot(self.alpha)[0, 0] + np.sum(self.alpha.flatten()*Ytr)

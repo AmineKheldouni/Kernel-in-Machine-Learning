@@ -37,7 +37,6 @@ class FastSVM:
         self.alpha = np.zeros(Xtr.shape[0])
         for idx, s in enumerate(support):
             self.alpha[s] = dc[0,idx]
-
         self.alpha = self.alpha.reshape(-1,1)
 
     def get_training_results(self):
@@ -49,7 +48,6 @@ class FastSVM:
         self.K_t = self.kernel.compute_test(self.Xtr, Xte)
         predictions = self.K_t.dot(self.alpha.reshape((self.alpha.size, 1))).reshape(-1)
         print("End of predictions !")
-
         return predictions
 
     def score_train(self):
@@ -57,6 +55,4 @@ class FastSVM:
         return np.mean(f.reshape(-1) == self.Ytr)
 
     def get_objective(self, Ytr):
-        tmp = (self.alpha.flatten() * Ytr)[:,None]
-        print("somme alpha: ", np.sum(self.alpha))
-        return -0.5*tmp.T.dot(self.K).dot(tmp)[0,0] + np.sum(self.alpha)
+        return -0.5 * self.alpha.T.dot(self.K).dot(self.alpha)[0, 0] + np.sum(self.alpha.flatten()*Ytr)
