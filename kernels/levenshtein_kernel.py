@@ -9,8 +9,8 @@ import Levenshtein
 class LevenshteinKernel(Kernel):
     """ LinearKernel class """
 
-    def __init__(self, gamma):
-        super().__init__()
+    def __init__(self, gamma, normalize = False):
+        super().__init__(normalize = normalize)
         self.gamma = gamma
 
     def evaluate(self, string1, string2):

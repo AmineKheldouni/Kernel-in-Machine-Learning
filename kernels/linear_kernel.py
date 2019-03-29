@@ -6,8 +6,8 @@ from kernels.fast_kernel import FastKernel
 import numpy as np
 
 class LinearKernel(FastKernel):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, normalize = False):
+        super().__init__(normalize)
 
     def string_to_vec(self, string):
         vec = []

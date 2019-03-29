@@ -7,9 +7,9 @@ import numpy as np
 
 
 class RBFKernel(LinearKernel):
-    def __init__(self, gamma):
+    def __init__(self, gamma, normalize = False):
         self.gamma = gamma
-        super().__init__()
+        super().__init__(normalize)
 
     def compute_train(self, data_train):
         n = len(data_train[0])
