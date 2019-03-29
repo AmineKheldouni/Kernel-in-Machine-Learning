@@ -53,8 +53,9 @@ class MismatchSpectrumKernel(FastKernel):
         return csr_matrix(features)
 
     def compute_train(self, data_train):
-        # if not self.K_train is None:
-        #     return self.K_train
+        if not self.K_train is None:
+            print("Used a pre-trained Ktrain for MSK.")
+            return self.K_train
         feature_vector = self.compute_feature_vector(data_train)
         K = np.dot(feature_vector, feature_vector.T).toarray()
         if self.normalize:
