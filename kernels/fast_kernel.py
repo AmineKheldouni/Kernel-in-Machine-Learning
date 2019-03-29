@@ -41,8 +41,8 @@ class FastKernel(ABC):
         K_test = np.divide(K_test, matrix_norms)
         return K_test
 
-    def save_train(filename):
+    def save_train(self, filename):
         np.save(filename, self.K)
 
-    def load_train(filename):
+    def load_train(self, filename):
         self.K = np.load(filename)
