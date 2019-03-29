@@ -3,7 +3,7 @@ import math
 
 from algorithms.utils_mkl import *
 
-EPS = math.pow(10,-5)
+EPS = math.pow(10,-2)
 
 #from algorithms.svm import SVM
 from algorithms.fast_svm import FastSVM as SVM
@@ -167,11 +167,13 @@ class MKL_SVM:
             criteria_not_met = np.linalg.norm(old_etas-self.etas) > EPS
             #criteria_not_met = (max(D) > EPS) and not(stopping_criterion(False,grad_target, self.etas, tol))
 
-        if viz: print("final etas : ", self.WS_kernel.etas)
+        print("final etas : ", self.WS_kernel.etas)
 
         # OPTIMIZING
 
-        self.WS_kernel.etas = self.etas.copy()
+        self.etas = 1/self.etas
+        self.etas /= np.sum(self.etas)
+        self.WS_kernel.etas = self.etas
         self.svm = SVM(kernel=self.WS_kernel)
         self.svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
 

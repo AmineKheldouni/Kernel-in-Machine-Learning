@@ -78,12 +78,19 @@ print(">>> Set 0")
 # k0 = 5
 
 #CONVERGES ON THIS INSTANCE
+'''
 kernel02 = MismatchSpectrumKernel(4, 2, normalize = True)
 kernel03 = MismatchSpectrumKernel(4, 1, normalize = True)
 kernel04 = MismatchSpectrumKernel(4, 0, normalize = True)
 kernel0 = WeightedSumKernel([kernel02, kernel03, kernel04])
+'''
 
-svm0, train_acc, val_acc = MKL_SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, 0.1)
+kernel00 = MismatchSpectrumKernel(4, 2, normalize = True)
+kernel01 = MismatchSpectrumKernel(4, 1, normalize = True)
+kernel02 = MismatchSpectrumKernel(6, 0, normalize = True)
+kernel0 = WeightedSumKernel([kernel00, kernel01, kernel02])
+
+svm0, train_acc, val_acc = MKL_SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, 0.2)
 
 print("Training accuracy:", train_acc)
 print("Valudation accuracy:", val_acc)
@@ -92,28 +99,28 @@ print("Valudation accuracy:", val_acc)
 
 print("\n###################\n")
 print(">>> Set 1")
-kernel00 = SpectrumKernel(8, normalize = True)
-kernel01 = SpectrumKernel(5, normalize = True)
-kernel02 = SpectrumKernel(4, normalize = True)
+kernel00 = MismatchSpectrumKernel(4, 2, normalize = True)
+kernel01 = MismatchSpectrumKernel(4, 1, normalize = True)
+kernel02 =  MismatchSpectrumKernel(6, 0, normalize = True)
 kernel1 = WeightedSumKernel([kernel00, kernel01, kernel02])
 
 svm1, train_acc, val_acc = MKL_SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, 0.2)
 print("Training accuracy:", train_acc)
-print("Valudation accuracy:", val_acc)
+print("Validation accuracy:", val_acc)
 
 ###############################################################################
 print("\n###################\n")
 print(">>> Set 2")
 #
 
-kernel00 = SpectrumKernel(8, normalize = True)
-kernel01 = SpectrumKernel(5, normalize = True)
-kernel02 = SpectrumKernel(4, normalize = True)
+kernel00 = MismatchSpectrumKernel(4, 2, normalize = True)
+kernel01 = MismatchSpectrumKernel(4, 1, normalize = True)
+kernel02 =  MismatchSpectrumKernel(6, 0, normalize = True)
 kernel2 = WeightedSumKernel([kernel00, kernel01, kernel02])
 
 svm2, train_acc, val_acc = MKL_SVM_prediction(X2_train, X2_val, y2_train, y2_val, kernel2, 0.2)
 print("Training accuracy:", train_acc)
-print("Valudation accuracy:", val_acc)
+print("Validation accuracy:", val_acc)
 #
 #
 # ###############################################################################
@@ -123,4 +130,4 @@ print("Valudation accuracy:", val_acc)
 #
 #
 #
-# generate_submission_file("Yte_sum_mismatch.csv", svm0, svm1, svm2, Xte0, Xte1, Xte2)
+generate_submission_file("Yte_sum_mismatch.csv", svm0, svm1, svm2, Xte0, Xte1, Xte2)
