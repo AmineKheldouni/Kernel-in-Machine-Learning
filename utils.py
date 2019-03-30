@@ -4,7 +4,7 @@ from algorithms.svm import SVM
 from algorithms.fast_svm import FastSVM
 
 def SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001, svm_function=SVM):
-
+    np.random.seed(0)
     svm = svm_function(kernel, center=False)
     svm.train(data_train, y_train, lbd)
 
