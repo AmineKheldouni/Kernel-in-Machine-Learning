@@ -23,11 +23,11 @@ class SpectrumKernel(FastKernel):
 
     def compute_train(self, data_train):
         feature_vector = self.compute_feature_vector(data_train)
-        K = np.dot(feature_vector, feature_vector.T).toarray()
+        self.K_train = np.dot(feature_vector, feature_vector.T).toarray()
         if self.normalize:
-            K = self.normalize_train(K)
-        return K
-        
+            self.K_train = self.normalize_train(self.K_train)
+        return self.K_train
+
     def compute_test(self, data_train, data_test):
         feature_vector_train = self.compute_feature_vector(data_train)
         feature_vector_test = self.compute_feature_vector(data_test)
