@@ -1,46 +1,37 @@
-########################################################################
-### SpectrumKernel
-########################################################################
+import numpy as np
+from scipy.sparse import csr_matrix, lil_matrix
+from kernels.fast_kernel import FastKernel
 
-from kernels.kernel import *
-
-class SpectrumKernel(Kernel):
-    """ SpectrumKernel class """
-
-    def __init__(self, k, EOW = '$', normalize=True):
-        super().__init__(normalize)
+class SpectrumKernel(FastKernel):
+    def __init__(self, k, normalize=False):
+        super().__init__()
         self.k = k
-        # Prefix symbol
-        self.EOW = '$'
+        self.index = {"A": 0, "C": 1, "G": 2, "T": 3}
+        self.normalize = normalize
 
-    def evaluate(self, x, y):
-        """
-        Evaluation function computing the inner product between phi_x and phi_y
-        """
-        xwords_occurrence = {}
-        count = 0
-        for l in range(len(x[0]) - self.k + 1):
-            if self.find_word(y[1], x[0][l:l + self.k]):
-                if x[0][l:l + self.k] in xwords_occurrence.keys():
-                    xwords_occurrence[x[0][l:l + self.k]] += 1
-                else:
-                    xwords_occurrence[x[0][l:l + self.k]] = 1
-                    count += 1
+    def compute_index(self, word):
+        for i in range(len(word)):
+            word[i] = self.index[word[i]]
+        return np.dot(np.array(word), np.power(4, np.arange(self.k)))
 
-        xphi = np.fromiter(xwords_occurrence.values(), dtype=int)
-        yphi = [y[2][key] for key in xwords_occurrence.keys()]
+    def compute_feature_vector(self, X):
+        features =  lil_matrix((X.shape[0], 4 ** self.k))
+        for i, line in enumerate(X):
+            for j in range(len(line) - self.k + 1):
+                features[i, self.compute_index(list(line[j:j + self.k]))] += 1
+        return csr_matrix(features)
 
-        return xphi.dot(yphi)
+    def compute_train(self, data_train):
+        feature_vector = self.compute_feature_vector(data_train)
+        self.K_train = np.dot(feature_vector, feature_vector.T).toarray()
+        if self.normalize:
+            self.K_train = self.normalize_train(self.K_train)
+        return self.K_train
 
-    def find_word(self, trie, w):
-        """
-            Finds whether a word w is present in
-            a given retrieval tree "trie"
-        """
-        tmp = trie
-        for l in w:
-            if l in tmp:
-                tmp = tmp[l]
-            else:
-                return False
-        return self.EOW in tmp
+    def compute_test(self, data_train, data_test):
+        feature_vector_train = self.compute_feature_vector(data_train)
+        feature_vector_test = self.compute_feature_vector(data_test)
+        K = np.dot(feature_vector_test, feature_vector_train.T).toarray()
+        if self.normalize:
+            K = self.normalize_test(K, feature_vector_test)
+        return K

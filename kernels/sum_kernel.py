@@ -26,6 +26,9 @@ class SumKernel():
         return K
 
     def load(self, dataset_idx):
+        """ Function to load pre-trained train kernel matrices for
+        MismatchSpectrumKernels
+        """
         self.kernels = []
         for f in glob.glob("./storage/{}/*.npy".format(dataset_idx)):
             Kt = np.load(f)

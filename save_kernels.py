@@ -4,12 +4,10 @@ import sys
 import numpy as np
 import pandas as pd
 from submission import *
-from kernels.fast_spectrum_kernel import SpectrumKernel
-from kernels.fast_sum_spectrum_kernel import SumSpectrumKernel
+from kernels.spectrum_kernel import SpectrumKernel
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
-#from kernels.linear_kernel import LinearKernel
-#from kernels.levenshtein_kernel import LevenshteinKernel
-#from kernels.rbf_kernel import RBFKernel
+from kernels.exponential_linear_kernel import ExponentialLinearKernel
+
 import time
 from utils import *
 
@@ -35,7 +33,8 @@ if not os.path.exists('./storage'):
 
 dic_kernel_names = {'MismatchSpectrumKernel': MismatchSpectrumKernel,
                     'SpectrumKernel': SpectrumKernel,
-                    'SumSpectrumKernel': SumSpectrumKernel}
+                    'SumKernel': SumKernel,
+                    'ExponentialLinearKernel': ExponentialLinearKernel}
 
 file_name = ['Ktrain']
 file_name.append(kernel_type)

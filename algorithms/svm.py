@@ -8,9 +8,7 @@ from cvxopt import matrix, solvers
 
 
 class SVM:
-    """
-        Implements Support Vector Machine.
-    """
+    """ Implements Support Vector Machine """
 
     def __init__(self, kernel=None, center=False, train_filename = None):
         self.kernel = kernel
@@ -49,7 +47,7 @@ class SVM:
         print("Predicting ...")
         self.K_t = self.kernel.compute_test(self.Xtr, Xte)
         predictions = self.K_t.dot(self.alpha.reshape((self.alpha.size, 1))).reshape(-1)
-        print("End of predictions !")
+        print("End of predictions!")
         return predictions
 
     def score_train(self):

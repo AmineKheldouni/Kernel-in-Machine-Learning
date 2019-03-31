@@ -1,8 +1,14 @@
 import numpy as np
 
 
-def generate_submission_file(file_name, classifier0, classifier1, classifier2,\
-    Xte0, Xte1, Xte2):
+def generate_submission_file(file_name,
+                             classifier0,
+                             classifier1,
+                             classifier2,
+                             Xte0,
+                             Xte1,
+                             Xte2):
+    """ Function that generates the submission file in the right format. """
     Yte0 = np.array(np.sign(classifier0.predict(Xte0)), dtype=int)
     Yte1 = np.array(np.sign(classifier1.predict(Xte1)), dtype=int)
     Yte2 = np.array(np.sign(classifier2.predict(Xte2)), dtype=int)
