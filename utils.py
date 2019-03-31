@@ -1,11 +1,10 @@
-import numpy as np
+from imports import *
 from algorithms.svm import SVM
 
 def SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001):
-    """ Function for validation of the chosen kernel:
+    """ Function solving the SVM for the chosen kernel and computing accuracy on a validation set :
         - Training the kernel with (data_train, y_train).
-        - Validation of the kernel for the validation.
-        - Displaying the accuracies """
+        - Computing accuracy on (data_val, y_val)."""
     np.random.seed(0)
     svm = SVM(kernel, center=False)
     svm.train(data_train, y_train, lbd)
@@ -14,7 +13,7 @@ def SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001):
     return svm, svm.score_train(), (y_val == predictions).mean()
 
 def train_val_split(data, y, split = 300):
-    """ Function for splitting the data into train and validation sets. """
+    """ Function splitting the data into train and validation sets (split : number of validation examples)"""
     if split == 0:
         return data, np.array([]), y, np.array([])
     permutation = np.random.permutation(len(data))
@@ -54,7 +53,7 @@ def kfold_cross_validation(data, predictions, kernels, list_lambda, k=10):
                                                          kernels[d],
                                                          list_lambda[j])
                 print("Training accuracy:", train_acc)
-                print("Valudation accuracy:", val_acc)
+                print("Validation accuracy:", val_acc)
                 print("######")
                 scores[i,j,d] = val_acc
 

@@ -1,5 +1,8 @@
-import numpy as np
-from scipy.sparse import csr_matrix, lil_matrix
+########################################################################
+### Spectrum Kernel
+########################################################################
+
+from imports import *
 from kernels.kernel import Kernel
 
 class SpectrumKernel(Kernel):

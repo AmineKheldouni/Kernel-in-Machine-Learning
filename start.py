@@ -1,17 +1,18 @@
 
 # -*- coding: utf-8 -*-
 
-import numpy as np
-import pandas as pd
+from imports import *
+
+from kernels.sum_kernel import SumKernel
+from kernels.exponential_linear_kernel import ExponentialLinearKernel
+from kernels.spectrum_kernel import SpectrumKernel
+from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
+from kernels.levenshtein_kernel import LevenshteinKernel
+from kernels.LA_kernel import LAKernel
+
+from algorithms.svm import SVM
 
 from submission import *
-from kernels.sum_kernel import SumKernel
-from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
-from kernels.spectrum_kernel import SpectrumKernel
-from kernels.levenshtein_kernel import LevenshteinKernel
-from kernels.exponential_linear_kernel import ExponentialLinearKernel
-from algorithms.svm import SVM
-import time
 from utils import *
 
 
@@ -71,7 +72,7 @@ lbd0 = 0.0005
 svm0, train_acc, val_acc = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
 print("Training accuracy:", train_acc)
 if len(X0_val) > 0:
-    print("Valudation accuracy:", val_acc)
+    print("Validation accuracy:", val_acc)
 
 ###############################################################################
 print(">>> Set 1 <<<")
@@ -97,7 +98,7 @@ lbd1 = 0.0007
 svm1, train_acc, val_acc = SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, lbd1)
 print("Training accuracy:", train_acc)
 if len(X0_val) > 0:
-    print("Valudation accuracy:", val_acc)
+    print("Validation accuracy:", val_acc)
 
 # ###############################################################################
 print(">>> Set 2 <<<")
@@ -124,7 +125,7 @@ lbd2 = 0.0008
 svm2, train_acc, val_acc = SVM_prediction(X2_train, X2_val, y2_train, y2_val, kernel2, lbd2)
 print("Training accuracy:", train_acc)
 if len(X0_val) > 0:
-    print("Valudation accuracy:", val_acc)
+    print("Validation accuracy:", val_acc)
 
 
 ###############################################################################

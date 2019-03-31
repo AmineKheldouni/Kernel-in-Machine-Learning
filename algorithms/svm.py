@@ -1,11 +1,7 @@
-import numpy as np
+from imports import *
 from cvxopt import matrix, solvers
-import math
 
 EPS = math.pow(10,-5)
-
-from cvxopt import matrix, solvers
-
 
 class SVM:
     """ Implements Support Vector Machine """
@@ -13,17 +9,18 @@ class SVM:
     def __init__(self, kernel=None, center=False, train_filename = None):
         self.kernel = kernel
         self.center = center
+        self.train_filename = train_filename
 
     def train(self, Xtr, Ytr, lbd=1, verbose=True):
         n = len(Xtr)
         self.Xtr = Xtr
         self.Ytr = Ytr
         try:
-            self.kernel.load_kernel(train_filename)
+            self.kernel.load_kernel(self.train_filename)
             self.K = self.kernel.K
         except:
             if verbose:
-                print("Computing train kernel ...")
+                print("Computing Training Gram Matrix ...")
             self.K = self.kernel.compute_train(self.Xtr)
 
         if verbose:

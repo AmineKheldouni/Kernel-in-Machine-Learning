@@ -1,14 +1,11 @@
-import os
-import sys
+from imports import *
 
-import numpy as np
-import pandas as pd
-from submission import *
+from kernels.sum_kernel import SumKernel
 from kernels.spectrum_kernel import SpectrumKernel
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
 from kernels.exponential_linear_kernel import ExponentialLinearKernel
 
-import time
+from submission import *
 from utils import *
 
 kernel_type = sys.argv[1]
@@ -44,9 +41,9 @@ file_name.append(str(split))
 kernel = dic_kernel_names[kernel_type](int(split_params[0]), int(split_params[1]), normalize = True)
 file_name.append(params)
 
-print(" Computing train kernel using dataset {}, splitted with {} validation examples.".format(i, str(split)) +
+print(" Computing training Gram matrix using dataset {}, splitted with {} validation examples.".format(i, str(split)) +
       " The {} is of parameters: {}".format(kernel_type, params))
 Ktrain = kernel.compute_train(X_train)
-print("Saving the train kernel (of shape {}) in storage/{}".format(str(Ktrain.shape), '_'.join(file_name)))
+print("Saving training Gram matrix (of shape {}) in storage/{}".format(str(Ktrain.shape), '_'.join(file_name)))
 np.save('./storage/'+'_'.join(file_name), Ktrain)
 print("Ktrain saved !")

@@ -1,17 +1,16 @@
-from tqdm import tqdm
-import numpy as np
+########################################################################
+### LocalAlignmentKernel
+########################################################################
 
-import time
+from imports import *
+
 from scipy.linalg import sqrtm
 from scipy.sparse.linalg import norm
 
-import os
-
 class LAKernel():
 
-    # http://cazencott.info/dotclear/public/publications/Azencott_KernelsForSequences09.pdf
-    # https://www.cs.princeton.edu/~bee/courses/read/saigo-bioinformatics-2004.pdf?fbclid=IwAR0LjydQ9kD6FY8ISBsRiYGk_7iopyQAwVKGvzCFoF9EO-O6498av6NcRK4
-
+    """Our implementation of the Local Alignment Kernel, with Nystrom approximation (for speed up)"""
+    #
     def __init__(self, nb_anchors_Nystrom=100, gap_costs = (1,7), type="BLAST", beta=0.5, normalize=False):
 
         # nb anchors
@@ -24,20 +23,17 @@ class LAKernel():
         self.d = gap_costs[0]  # gap opening
         self.e = gap_costs[1]  #extension cost
 
-        # against diagonal dominance
+        # against Gram matrix diagonal dominance
         self.beta = beta
 
         # csts used in dynamic programming
         self.cst1 = np.exp(self.beta * self.d)
         self.cst2 = np.exp(self.beta * self.e)
 
-        self.type = type  # "BLAST" or "Transversion" #or ""Identity"
+        self.type = type  # "BLAST" or "Transversion" or ""Identity"
 
     def score_substitution(self, x, y):
-        # substitution table
-        # https://en.wikipedia.org/wiki/Substitution_matrix
-        # (https://en.wikipedia.org/wiki/Models_of_DNA_evolution)
-        # https://slideplayer.com/slide/5092656/
+        # substitution table. Source : https://slideplayer.com/slide/5092656/
 
         if self.type == "BLAST":
             equal = int(x == y)
@@ -52,9 +48,7 @@ class LAKernel():
             exit()
 
     def evaluate(self, x, y):
-        """
-        Evaluation function computing the inner product between phi_x and phi_y
-        """
+        #Evaluation function computing the K(x,y)
 
         nx = len(x) + 1
         ny = len(y) + 1
@@ -66,7 +60,6 @@ class LAKernel():
 
         for i in range(1, nx):
             for j in range(1, ny):
-                # print(cst1,cst2)
                 s = self.score_substitution(x[i - 1], y[j - 1])
                 M[i, j] = np.exp(self.beta * s) * (1 + X[i - 1][j - 1] + Y[i - 1][j - 1] + M[i - 1][j - 1])
                 X[i, j] = self.cst1 * M[i - 1, j] + self.cst2 * X[i - 1, j]
@@ -74,11 +67,10 @@ class LAKernel():
                 X2[i, j] = M[i - 1, j] + X2[i - 1, j]
                 Y2[i, j] = M[i, j - 1] + X2[i, j - 1] + Y2[i, j - 1]
 
-        # print(1 + X2[-1,-1] + Y2[-1,-1] + M[-1,-1])
-
         return 1 / self.beta * np.log(1 + X2[-1, -1] + Y2[-1, -1] + M[-1, -1])
 
     def choose_anchor_points(self, Xtr, option="random"):
+        # Choose self.nb_anchors anchor points among training set for Nystrom approximation
 
         n = len(Xtr)
         if option=="random":
@@ -94,6 +86,7 @@ class LAKernel():
                 self.is_anchor[i] = 1
 
     def compute_K_anchors_Nystrom(self, Xtr):
+        # Compute the exact Gram matrix for the anchor points
 
         print("Computing K anchors (Nystrom) ...")
         start = time.time()
@@ -121,17 +114,18 @@ class LAKernel():
                 else:
                     eigenv = min(eigenv, e)
         if not (eigenv is None):
-            self.K_anchors = self.K_anchors - (eigenv - 1) * np.eye(self.nb_anchors)
+            self.K_anchors = self.K_anchors - (eigenv - 1) * np.eye(self.nb_anchors) #to make it positive definite
 
         end = time.time()
         print("Time elapsed: {0:.2f}".format(end - start))
 
         self.Xtr = Xtr
         self.inv_sqrt_K_anchors = sqrtm(np.linalg.inv(self.K_anchors)) #square root of matrix
-        self.inv_sqrt_K_anchors = np.real(self.inv_sqrt_K_anchors)  #not necessary(discard infinitesimal imaginary part)
+        self.inv_sqrt_K_anchors = np.real(self.inv_sqrt_K_anchors)  #not necessary actually (discard infinitesimal imaginary part)
         # print("inv sqrt anchors : ", self.inv_sqrt_K_anchors.shape)
 
     def compute_features_train_Nystrom(self):
+        # Compute the Nystrom features for the train data
 
         print("Computing train features (Nystrom) ...")
 
@@ -148,14 +142,13 @@ class LAKernel():
 
         for (i,j) in tqdm(pairs):
             eval_with_anchors[i, self.idx_anchors[j]] = self.evaluate(self.Xtr[i], self.Xtr[j])
-
         #print("eval train with anchors shape : ", eval_with_anchors.shape)
 
         self.features_train = self.inv_sqrt_K_anchors.dot(eval_with_anchors.T).T
-
         print("features train shape : ",self.features_train.shape)
 
     def compute_train(self, Xtr):
+        # Compute the approximate training Gram matrix (using Nystrom features)
 
         print("Nb of training points : ", Xtr.shape[0])
 
@@ -173,7 +166,8 @@ class LAKernel():
 
         return K_train
 
-    def compute_test(self, Xtr, Xte): #Xtr not used. We use self.Xtr
+    def compute_test(self, Xtr, Xte):
+        # Compute the approximate test Gram matrix (using Nystrom features)
 
         print("Computing test features (Nystrom) ...")
 
@@ -201,13 +195,13 @@ class LAKernel():
 
         return K_test
 
-    def normalize_train(self, K_train): #K_train unormalized
+    def normalize_train(self, K_train): #to normalize Ktrain
         self.norms_train = np.sqrt(K_train.diagonal())  # norms for x train vector
         matrix_norms = np.outer(self.norms_train,self.norms_train) #10e-40
         K_train =  np.divide(K_train, matrix_norms)
         return K_train
 
-    def normalize_test(self, K_test, feats_test): #K_test unormalized
+    def normalize_test(self, K_test, feats_test): #to normalize Ktest
         norms_test = np.linalg.norm(feats_test,axis=1)
         matrix_norms = np.outer(norms_test,self.norms_train) #+ 1e-40  # matrix sqrt(K(xtest,xtest)*K(xtrain,xtrain))
         K_test = np.divide(K_test, matrix_norms)

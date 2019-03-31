@@ -1,4 +1,8 @@
-import numpy as np
+########################################################################
+### Fisher Kernel (HMM modelling)
+########################################################################
+
+from imports import *
 from kernels.kernel import Kernel
 
 # parameters for dataset 0
@@ -11,7 +15,7 @@ A = np.array([[0.61262946, 0.38737054],
 theta = [A, p, pi_0, pi_fin]
 
 class FisherKernel(Kernel):
-    """ LinearKernel class """
+    """ Implements the Fisher Kernel (with HMM modelling) """
 
     def __init__(self):
         self.index = {"A": 0, "C": 1, "G": 2, "T": 3}

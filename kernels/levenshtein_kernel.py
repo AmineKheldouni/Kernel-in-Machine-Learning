@@ -1,16 +1,12 @@
 ########################################################################
-### LinearKernel
+### Exponential Kernel with Levenshtein distance
 ########################################################################
 
-from kernels.kernel import Kernel
-import numpy as np
+from imports import *
 import Levenshtein
 
-from tqdm import tqdm
-import time
-
 def levenshtein_distance(s1, s2):
-    """ The Levenshtein distance between s1 and s2 """
+    """ Our implementation to compute the Levenshtein distance between s1 and s2 """
     m = np.zeros((len(s1)+1, len(s2)+1), dtype=int)
     m[:, 0] = np.arange(0, len(s1)+1)
     m[0, :] = np.arange(0, len(s2)+1)
@@ -24,7 +20,8 @@ def levenshtein_distance(s1, s2):
     return m[len(s1), len(s2)]
 
 class LevenshteinKernel():
-    """ LinearKernel class """
+    """ Exponential Kernel with Levenshtein distance
+     We will call the Levenshtein library for faster computation"""
 
     def __init__(self, gamma, normalize = False):
         self.gamma = gamma
@@ -34,7 +31,7 @@ class LevenshteinKernel():
         return np.exp(- self.gamma * Levenshtein.distance(string1, string2))
 
     def compute_train(self, Xtr):
-        print("Computing Train Kernel ...")
+        print("Computing Training Gram Matrix ...")
         start = time.time()
         n = len(Xtr)
         K = np.zeros((n, n))
@@ -56,7 +53,7 @@ class LevenshteinKernel():
         return K
 
     def compute_test(self, Xtr, Xte):
-        print("Computing Test Kernel ...")
+        print("Computing Test Gram Matrix ...")
         start = time.time()
         n = len(Xtr)
         m = len(Xte)

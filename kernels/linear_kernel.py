@@ -2,8 +2,8 @@
 ### LinearKernel
 ########################################################################
 
+from imports import *
 from kernels.kernel import Kernel
-import numpy as np
 
 class LinearKernel(Kernel):
     def __init__(self, normalize = False):

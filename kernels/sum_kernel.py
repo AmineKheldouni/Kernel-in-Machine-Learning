@@ -1,8 +1,9 @@
-from kernels.kernel import Kernel
-import numpy as np
-from kernels.spectrum_kernel import SpectrumKernel
+########################################################################
+### Sum of Kernels
+########################################################################
+
+from imports import *
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
-import scipy.sparse as ss
 import glob
 
 class SumKernel():
@@ -12,7 +13,7 @@ class SumKernel():
 
     def compute_train(self, data_train):
         K = 0
-        print("Compute K train ...")
+        print("Computing Training Gram Matrix ...")
         for i in range(len(self.kernels)):
             K += self.kernels[i].compute_train(data_train)
         self.K = K
@@ -20,9 +21,9 @@ class SumKernel():
 
     def compute_test(self, data_train, data_test):
         K = 0
+        print("Computing Test Gram Matrix ...")
         for i in range(len(self.kernels)):
             K += self.kernels[i].compute_test(data_train, data_test)
-            #give the option to normalize each kernel
         return K
 
     def load(self, dataset_idx):

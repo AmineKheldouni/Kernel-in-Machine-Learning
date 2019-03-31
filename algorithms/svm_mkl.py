@@ -1,16 +1,10 @@
-import numpy as np
-import math
-
-EPS = math.pow(10,-2)
-
-#from algorithms.svm import SVM
+from imports import *
 from algorithms.svm import SVM
-
 
 class MKL_SVM:
     """
         Implements Support Vector Machine for Multiple Kernels
-        http://www.jmlr.org/papers/volume9/rakotomamonjy08a/rakotomamonjy08a.pdf
+        Related article : http://www.jmlr.org/papers/volume9/rakotomamonjy08a/rakotomamonjy08a.pdf
     """
 
     def __init__(self, WS_kernel, center=False):
@@ -38,7 +32,7 @@ class MKL_SVM:
         descent_directions[mu] = sum_grad_diff_for_pos_etas
         return descent_directions
 
-    def train(self, Xtr, Ytr, lbd=1, tol = 0.1, viz=False):
+    def train(self, Xtr, Ytr, lbd=1, EPS = 0.01, viz=False):
 
         self.Xtr = Xtr
         self.Ytr = Ytr
