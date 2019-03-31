@@ -1,10 +1,9 @@
 ########################################################################
-### LinearKernel
+### Exponential of linear kernel on one-hot encoded sequences
 ########################################################################
 
+from imports import *
 from kernels.linear_kernel import LinearKernel
-import numpy as np
-
 
 class ExponentialLinearKernel(LinearKernel):
     def __init__(self, gamma, normalize = False):

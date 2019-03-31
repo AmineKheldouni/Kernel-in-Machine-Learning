@@ -1,7 +1,12 @@
-import numpy as np
+########################################################################
+### Kernel abstract class (with Normalization option)
+########################################################################
+
+from imports import *
 from scipy.sparse.linalg import norm
 
 from abc import abstractmethod, ABC
+
 class Kernel(ABC):
     def __init__(self, normalize=False):
         self.normalize = normalize

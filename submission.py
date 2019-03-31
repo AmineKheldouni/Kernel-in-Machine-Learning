@@ -1,5 +1,4 @@
-import numpy as np
-
+from imports import *
 
 def generate_submission_file(file_name,
                              classifier0,

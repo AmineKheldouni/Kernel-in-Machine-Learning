@@ -1,4 +1,8 @@
-import numpy as np
+########################################################################
+### Weighted Sum of Kernels
+########################################################################
+
+from imports import *
 
 class WeightedSumKernel():
     def __init__(self, kernels):
