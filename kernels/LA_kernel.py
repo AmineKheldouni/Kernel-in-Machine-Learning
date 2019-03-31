@@ -12,7 +12,7 @@ class LAKernel():
     # http://cazencott.info/dotclear/public/publications/Azencott_KernelsForSequences09.pdf
     # https://www.cs.princeton.edu/~bee/courses/read/saigo-bioinformatics-2004.pdf?fbclid=IwAR0LjydQ9kD6FY8ISBsRiYGk_7iopyQAwVKGvzCFoF9EO-O6498av6NcRK4
 
-    def __init__(self, nb_anchors_Nystrom=100, gap_costs = (1,11), type="BLAST", beta=0.5, normalize=True):
+    def __init__(self, nb_anchors_Nystrom=100, gap_costs = (1,7), type="BLAST", beta=0.5, normalize=False):
 
         # nb anchors
         self.nb_anchors = nb_anchors_Nystrom
