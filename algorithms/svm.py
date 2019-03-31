@@ -57,4 +57,4 @@ class SVM:
         return np.mean(f.reshape(-1) == self.Ytr)
 
     def get_objective(self, Ytr):
-        return -0.5 * self.alpha.T.dot(self.K).dot(self.alpha)[0, 0] + np.sum(self.alpha.flatten()*Ytr)
+        return -0.5 * self.alpha.T.dot(self.K).dot(self.alpha)[0, 0] + np.sum(np.abs(self.alpha.flatten()))

@@ -1,8 +1,6 @@
 import numpy as np
 import math
 
-from algorithms.utils_mkl import *
-
 EPS = math.pow(10,-2)
 
 #from algorithms.svm import SVM
@@ -25,7 +23,7 @@ class MKL_SVM:
         grad = np.zeros(self.nb_kernels)
         for i in range(self.nb_kernels):
             grad[i] = alphas.T.dot(self.WS_kernel.K_trains[i]).dot(alphas)[0,0]
-        return + 0.5 * grad
+        return - 0.5 * grad
 
     def get_descent_direction(self, grad_target, mu):
         descent_directions = np.zeros(self.nb_kernels)
@@ -71,108 +69,104 @@ class MKL_SVM:
             grad_target = self.get_grad_objective(svm.alpha)
             mu = self.etas.argmax()
             D = self.get_descent_direction(grad_target, mu)
-            #D = compute_descent_direction(self.etas, grad_target, mu)
-            #D = fix_precision_of_vector(D, 0)
 
-            target_cross = -math.inf
-            etas_cross = self.etas.copy()
-            D_cross = D.copy()
+            if False: #we often reach mu=nu which is really unexepected !
 
-            step_max = math.inf
+                # PART 1 bis : computing optimal descent direction D
 
-            while target_cross < target:
-
-                self.etas = etas_cross.copy()
-                D = D_cross.copy()
-
-                self.WS_kernel.etas = self.etas.copy()
-                svm = SVM(kernel=self.WS_kernel)
-                svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
-                #target_cross = svm.get_objective(Ytr)
+                target_cross = -math.inf
+                etas_cross = self.etas.copy()
+                D_cross = D.copy()
 
                 step_max = math.inf
-                nu = None
-                for m in range(self.nb_kernels):
-                    if D[m] < 0:
-                        d_D_quotient = -1 * self.etas[m] / D[m]
-                        if d_D_quotient < step_max:
-                            step_max = d_D_quotient
-                            nu = m
 
-                if viz:
-                    print("Gradient Dir D", D)
-                    print("Dmu ", D[mu])
-                    print("Dnu ", D[nu])
-                    # print("Dmu + Dnu ", D[mu] + D[nu])
+                while target_cross < target:
+
+                    self.etas = etas_cross.copy()
+                    D = D_cross.copy()
+
+                    self.WS_kernel.etas = self.etas.copy()
+                    svm = SVM(kernel=self.WS_kernel)
+                    svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
+                    #target_cross = svm.get_objective(Ytr)
+
+                    step_max = math.inf
+                    nu = None
+                    for m in range(self.nb_kernels):
+                        if D[m] < 0:
+                            d_D_quotient = -1 * self.etas[m] / D[m]
+                            if d_D_quotient < step_max:
+                                step_max = d_D_quotient
+                                nu = m
+
+                    if viz:
+                        print("Gradient Dir D", D)
+                        print("Dmu ", D[mu])
+                        print("Dnu ", D[nu])
+
+                    if (max(D) < EPS):
+                        if viz: print("D all zero")
+                        break
+
+                    etas_cross = self.etas + step_max * D
+
+                    #etas_cross[nu] = 0
+                    if mu!=nu:
+                        if viz: print(D_cross)
+                        D_cross[mu] = D[mu] + D[nu] #should not be minus
+                        D_cross[nu] = 0
+                        if viz: print(D_cross)
+                    else:
+                        if viz: print("mu=nu")
+                        break
+
+                    self.WS_kernel.etas = etas_cross.copy()
+                    svm = SVM(kernel=self.WS_kernel)
+                    svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
+                    target_cross = svm.get_objective(Ytr)
+
+                # PART 2 : computing optimal stepsize
 
                 if (max(D) < EPS):
-                    if viz: print("D all zero")
                     break
 
-                etas_cross = self.etas + step_max * D
+                if viz: print("\n Compute optimal stepsize D")
 
-                #etas_cross[nu] = 0
-                if mu!=nu:
-                    if viz: print(D_cross)
-                    D_cross[mu] = D[mu] + D[nu] #should not be minus
-                    D_cross[nu] = 0
-                    if viz: print(D_cross)
-                else:
-                    if viz: print("mu=nu")
-                    break
+                best_step = step_max
+                m = D.T.dot(grad_target)
+                divide_again = True
+                if viz: print("step max :", best_step)
+                counter_armijo = 0
+                while divide_again:
+                    self.WS_kernel.etas = self.etas + best_step * D
+                    svm = SVM(kernel=self.WS_kernel)
+                    svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
+                    new_target = svm.get_objective(Ytr)
+                    if new_target <= target_cross + step_max * 0.5 * m:
+                        divide_again = False
+                    else:
+                        # Update gamma
+                        best_step = best_step * 0.5
+                    counter_armijo += 1
+                    if counter_armijo>10:
+                        best_step = 0
+                        break
+                if viz: print("chosen step (Armijo) :", best_step)
 
-                #etas_cross = fix_precision_of_vector(etas_cross, 1)
-                #D_cross = fix_precision_of_vector(D_cross, 0)
-                #print("bis", D_cross[mu])
-
-                self.WS_kernel.etas = etas_cross.copy()
-                svm = SVM(kernel=self.WS_kernel)
-                svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
-                target_cross = svm.get_objective(Ytr)
-
-            # PART 2 : computing optimal stepsize
-
-            if (max(D) < EPS):
-                break
-
-            if viz: print("\n Compute optimal stepsize D")
-
-            best_step = step_max
-            m = D.T.dot(grad_target)
-            divide_again = True
-            if viz: print("step max :", best_step)
-            counter_armijo = 0
-            while divide_again:
-                self.WS_kernel.etas = self.etas + best_step * D
-                svm = SVM(kernel=self.WS_kernel)
-                svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)
-                new_target = svm.get_objective(Ytr)
-                if new_target <= target_cross + step_max * 0.5 * m:
-                    divide_again = False
-                else:
-                    # Update gamma
-                    best_step = best_step * 0.5
-                counter_armijo += 1
-                if counter_armijo>10:
-                    best_step = 0
-                    break
-            if viz: print("chosen step (Armijo) :", best_step)
+            else: #fix stepsize
+              best_step = 0.000005
 
             delta_etas = best_step * D
             self.etas += delta_etas
-            #self.etas = fix_precision_of_vector(self.etas, 1)
 
             print("new etas : ", self.etas)
 
             criteria_not_met = np.linalg.norm(old_etas-self.etas) > EPS
-            #criteria_not_met = (max(D) > EPS) and not(stopping_criterion(False,grad_target, self.etas, tol))
 
         print("final etas : ", self.WS_kernel.etas)
 
         # OPTIMIZING
 
-        self.etas = 1/self.etas
-        self.etas /= np.sum(self.etas)
         self.WS_kernel.etas = self.etas
         self.svm = SVM(kernel=self.WS_kernel)
         self.svm.train(Xtr, Ytr, lbd=lbd, verbose=viz)

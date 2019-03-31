@@ -5,13 +5,14 @@ import time
 from scipy.linalg import sqrtm
 from scipy.sparse.linalg import norm
 
+import os
 
 class LAKernel():
 
     # http://cazencott.info/dotclear/public/publications/Azencott_KernelsForSequences09.pdf
     # https://www.cs.princeton.edu/~bee/courses/read/saigo-bioinformatics-2004.pdf?fbclid=IwAR0LjydQ9kD6FY8ISBsRiYGk_7iopyQAwVKGvzCFoF9EO-O6498av6NcRK4
 
-    def __init__(self, nb_anchors_Nystrom=100, normalize=True):
+    def __init__(self, nb_anchors_Nystrom=100, gap_costs = (1,11), type="BLAST", beta=0.5, normalize=True):
 
         # nb anchors
         self.nb_anchors = nb_anchors_Nystrom
@@ -20,17 +21,17 @@ class LAKernel():
         self.normalize = normalize
 
         # gap penalty
-        self.d = 1.  # gap opening
-        self.e = 1.  # 11. #extension cost
+        self.d = gap_costs[0]  # gap opening
+        self.e = gap_costs[1]  #extension cost
 
         # against diagonal dominance
-        self.beta = 0.5
+        self.beta = beta
 
         # csts used in dynamic programming
         self.cst1 = np.exp(self.beta * self.d)
         self.cst2 = np.exp(self.beta * self.e)
 
-        self.type = "BLAST"  # or "Transversion" #or ""Identity"
+        self.type = type  # "BLAST" or "Transversion" #or ""Identity"
 
     def score_substitution(self, x, y):
         # substitution table
@@ -81,11 +82,16 @@ class LAKernel():
 
         n = len(Xtr)
         if option=="random":
-            self.anchors = np.random.choice(np.arange(n), self.nb_anchors)
+            self.anchors = np.sort(np.random.choice(np.arange(n), self.nb_anchors, replace = False))
         else:
             print("Only random selection of anchor points was implemented")
             print("Performs random selection of anchor points")
-            self.anchors = np.random.choice(np.arange(n), self.nb_anchors)
+            self.anchors = np.sort(np.random.choice(np.arange(n), self.nb_anchors, replace = False))
+
+        self.is_anchor = np.zeros(n)
+        for i in range(n):
+            if i in self.anchors.tolist():
+                self.is_anchor[i] = 1
 
     def compute_K_anchors_Nystrom(self, Xtr):
 
@@ -113,23 +119,17 @@ class LAKernel():
                 if eigenv is None:
                     eigenv = e
                 else:
-                    eigenv = max(eigenv, e)
+                    eigenv = min(eigenv, e)
         if not (eigenv is None):
-            self.K_anchors = self.K_anchors - eigenv * np.eye(self.nb_anchors)
+            self.K_anchors = self.K_anchors - (eigenv - 1) * np.eye(self.nb_anchors)
 
         end = time.time()
         print("Time elapsed: {0:.2f}".format(end - start))
 
         self.Xtr = Xtr
         self.inv_sqrt_K_anchors = sqrtm(np.linalg.inv(self.K_anchors)) #square root of matrix
-        #print(self.inv_sqrt_K_anchors)
-        self.inv_sqrt_K_anchors = np.real(self.inv_sqrt_K_anchors) #discard infinitesimal imaginary part
+        self.inv_sqrt_K_anchors = np.real(self.inv_sqrt_K_anchors)  #not necessary(discard infinitesimal imaginary part)
         # print("inv sqrt anchors : ", self.inv_sqrt_K_anchors.shape)
-
-        self.is_anchor = np.zeros(n)
-        for i in range(n):
-            if i in self.anchors.tolist():
-                self.is_anchor[i] = 1
 
     def compute_features_train_Nystrom(self):
 
@@ -147,7 +147,7 @@ class LAKernel():
                     pairs.append((i,self.anchors[k]))
 
         for (i,j) in tqdm(pairs):
-            eval_with_anchors[i, self.idx_anchors[j]] =  self.evaluate(self.Xtr[i], self.Xtr[j])
+            eval_with_anchors[i, self.idx_anchors[j]] = self.evaluate(self.Xtr[i], self.Xtr[j])
 
         #print("eval train with anchors shape : ", eval_with_anchors.shape)
 
@@ -212,61 +212,6 @@ class LAKernel():
         matrix_norms = np.outer(norms_test,self.norms_train) #+ 1e-40  # matrix sqrt(K(xtest,xtest)*K(xtrain,xtrain))
         K_test = np.divide(K_test, matrix_norms)
         return K_test
-
-    '''
-    def compute_train(self, Xtr):
-        print("Computing Train Kernel ...")
-        start = time.time()
-        n = len(Xtr)
-        K = np.zeros((n, n))
-        pairs = []
-        for i in range(n):
-            for j in range(i + 1):
-                pairs.append((i, j))
-        for (i, j) in tqdm(pairs):
-            K[j, i] = self.evaluate(Xtr[i], Xtr[j])
-        # Symmetrize Kernel
-        K = K + K.T - np.diag(K.diagonal())
-
-        eigenv = None  # smallest negative eigenvalue
-        for e in np.real(np.linalg.eigvals(K)):
-            if e < 0:
-                if eigenv is None:
-                    eigenv = e
-                else:
-                    eigenv = max(eigenv, e)
-        if not (eigenv is None):
-            K = K - eigenv * np.eye(n)
-
-        end = time.time()
-        print("Time elapsed: {0:.2f}".format(end - start))
-
-        return K
-
-    def compute_test(self, Xtr, Xte):
-        print("Computing Test Kernel ...")
-        start = time.time()
-        n = len(Xtr)
-        m = len(Xte)
-        K_t = np.zeros((m, n))
-        pairs = []
-        for k in range(m):
-            for j in range(n):
-                pairs.append((k, j))
-
-        for (k, j) in tqdm(pairs):
-            K_t[k, j] = self.evaluate(Xte[k], Xtr[j])
-
-        # if not(self.smallest_neg_eigenv_train is None):
-        #    K_t = K_t - self.smallest_neg_eigenv_train * np.eye(m)[:,:n]
-
-        end = time.time()
-        print("Time elapsed: {0:.2f}".format(end - start))
-        return K_t
-    '''
-
-
-
 
 
 
