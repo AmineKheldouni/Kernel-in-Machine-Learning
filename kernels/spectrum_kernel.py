@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
-from kernels.fast_kernel import FastKernel
+from kernels.kernel import Kernel
 
-class SpectrumKernel(FastKernel):
+class SpectrumKernel(Kernel):
     def __init__(self, k, normalize=False):
         super().__init__()
         self.k = k

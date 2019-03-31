@@ -2,10 +2,10 @@
 ### LinearKernel
 ########################################################################
 
-from kernels.fast_kernel import FastKernel
+from kernels.kernel import Kernel
 import numpy as np
 
-class LinearKernel(FastKernel):
+class LinearKernel(Kernel):
     def __init__(self, normalize = False):
         super().__init__(normalize)
 

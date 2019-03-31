@@ -1,6 +1,6 @@
-from kernels.fast_kernel import FastKernel
+from kernels.kernel import Kernel
 import numpy as np
-from kernels.fast_spectrum_kernel import SpectrumKernel
+from kernels.spectrum_kernel import SpectrumKernel
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
 import scipy.sparse as ss
 import glob

@@ -1,5 +1,5 @@
 import numpy as np
-from kernels.fast_kernel import FastKernel
+from kernels.kernel import Kernel
 
 # parameters for dataset 0
 pi_0 = np.array([0.49157036, 0.50842964])
@@ -10,7 +10,7 @@ A = np.array([[0.61262946, 0.38737054],
  [0.39016698, 0.60983302]])
 theta = [A, p, pi_0, pi_fin]
 
-class FisherKernel(FastKernel):
+class FisherKernel(Kernel):
     """ LinearKernel class """
 
     def __init__(self):
@@ -202,5 +202,3 @@ class FisherKernel(FastKernel):
             X_bis.append(list(string))
         X_bis = np.array(X_bis)
         return np.array([X_bis == "A", X_bis == "C", X_bis == "G", X_bis == "T"])  # .reshape(len(X), len(X[0]), -1, 4)
-
-

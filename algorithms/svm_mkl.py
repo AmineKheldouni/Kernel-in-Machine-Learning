@@ -4,7 +4,7 @@ import math
 EPS = math.pow(10,-2)
 
 #from algorithms.svm import SVM
-from algorithms.fast_svm import FastSVM as SVM
+from algorithms.svm import SVM
 
 
 class MKL_SVM:
@@ -181,4 +181,3 @@ class MKL_SVM:
 
     def score_train(self):
         return self.svm.score_train()
-

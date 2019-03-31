@@ -12,9 +12,6 @@ class WeightedSumKernel():
         for i in range(len(self.kernels)):
             self.K_trains.append(self.kernels[i].compute_train(data_train))
 
-    #def update_weights(self, etas):
-    #    self.etas = etas
-        
     def compute_train(self, data_train):
         #data train not used but kept to make svm class compatible
         K = 0

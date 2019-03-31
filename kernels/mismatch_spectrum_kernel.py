@@ -1,4 +1,4 @@
-from kernels.fast_kernel import FastKernel
+from kernels.kernel import Kernel
 import numpy as np
 from scipy.sparse import csr_matrix, lil_matrix
 from copy import deepcopy
@@ -27,7 +27,7 @@ def matches(word, i):
         return matches_set
 
 
-class MismatchSpectrumKernel(FastKernel):
+class MismatchSpectrumKernel(Kernel):
     def __init__(self, k, m=1, normalize = False):
         super().__init__(normalize)
         self.k = k
@@ -53,9 +53,6 @@ class MismatchSpectrumKernel(FastKernel):
         return csr_matrix(features)
 
     def compute_train(self, data_train):
-        # if not self.K_train is None:
-        #     print("Used a pre-trained Ktrain for MSK.")
-        #     return self.K_train
         feature_vector = self.compute_feature_vector(data_train)
         K = np.dot(feature_vector, feature_vector.T).toarray()
         if self.normalize:

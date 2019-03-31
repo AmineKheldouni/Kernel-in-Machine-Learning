@@ -7,7 +7,7 @@ import pandas as pd
 from submission import *
 from kernels.sum_kernel import SumKernel
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
-from kernels.fast_spectrum_kernel import SpectrumKernel
+from kernels.spectrum_kernel import SpectrumKernel
 from kernels.levenshtein_kernel import LevenshteinKernel
 from kernels.exponential_linear_kernel import ExponentialLinearKernel
 from algorithms.svm import SVM
