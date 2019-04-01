@@ -5,20 +5,25 @@
 from imports import *
 from kernels.kernel import Kernel
 
-# parameters for dataset 0
-pi_0 = np.array([0.49157036, 0.50842964])
-pi_fin = np.array([0.49789493, 0.50210507])
-p = np.array([[0.28160794, 0.00459951, 0.52885727, 0.18493528],
- [0.17609247, 0.54436512, 0.00826462, 0.27127779]])
-A = np.array([[0.61262946, 0.38737054],
- [0.39016698, 0.60983302]])
-theta = [A, p, pi_0, pi_fin]
+
+# parameters for dataset 0 for a simple model with markov assumption of 1 and 2 hidden states
+# pi_0 = np.array([0.49157036, 0.50842964])
+# pi_fin = np.array([0.49789493, 0.50210507])
+# p = np.array([[0.28160794, 0.00459951, 0.52885727, 0.18493528],
+#  [0.17609247, 0.54436512, 0.00826462, 0.27127779]])
+# A = np.array([[0.61262946, 0.38737054],
+#  [0.39016698, 0.60983302]])
+# theta = [A, p, pi_0, pi_fin]
 
 class FisherKernel(Kernel):
-    """ Implements the Fisher Kernel (with HMM modelling) """
+    """ LinearKernel class """
 
-    def __init__(self):
-        self.index = {"A": 0, "C": 1, "G": 2, "T": 3}
+    def __init__(self, k, normalize):
+        super().__init__()
+        self.k = k
+        permutations = self.generate_permutations(k)
+        self.index = dict(zip(permutations, np.arange(len(permutations))))
+        self.normalize = normalize
 
     def logplus(self, x, y):
         M = np.maximum(x, y)
@@ -109,61 +114,37 @@ class FisherKernel(Kernel):
 
         return total
 
-    def compute_thetas(self, theta, eps):
-        A, p, pi_0, pi_fin = theta
-        thetas = []
+    def compute_feature_vector(self, X_initial, p, A, pi_0, pi_fin):
+        X = self.transform(X_initial, self.k)
+        T = len(X[0])
+        K = len(p)
+        indicator_matrix = self.make_matrix(X)
+        alphas = []
+        betas = []
+        for string in X:
+            alphas.append(self.alpha_recursion(string, A, pi_0, p))
+            betas.append(self.beta_recursion(string, A, pi_fin, p))
 
-        for i in range(len(A)):
-            for j in range(len(A[i])):
-                A2 = A.copy()
-                A2[i, j] += eps
-                A2 /= A2.sum(axis=1).reshape(-1, 1)
-                thetas.append([A2, p, pi_0, pi_fin])
+        A2 = np.array([sum(self.proba_joint_hidden(t, string, alpha, beta, A, p) for t in range(T - 1))
+                       for string, alpha, beta in zip(X, alphas, betas)])
+        features = (A2 / A - A2.sum(axis=2).reshape(len(X), -1, 1)).reshape(len(X), -1)
 
-        for i in range(len(p)):
-            for j in range(len(p[i])):
-                p2 = p.copy()
-                p2[i, j] += eps
-                p2 /= p2.sum(axis=1).reshape(-1, 1)
-                thetas.append([A, p2, pi_0, pi_fin])
+        p_zt = np.array([[self.proba_hidden(t, alpha, beta) for t in range(T)] for alpha, beta in zip(alphas, betas)])
 
-        for i in range(len(pi_0)):
-            pi_02 = pi_0.copy()
-            pi_02[i] += eps
-            pi_02 /= pi_02.sum()
-            thetas.append([A, p, pi_02, pi_fin])
+        p2 = np.zeros((len(X), p.shape[0], p.shape[1]))
+        for t in range(len(X)):
+            for k in range(K):
+                for lettre in range(p.shape[1]):
+                    p2[t, k, lettre] = (p_zt[t, :, k] * indicator_matrix[lettre, t, :]).sum()
 
-        for i in range(len(pi_fin)):
-            pi_fin2 = pi_fin.copy()
-            pi_fin2[i] += eps
-            pi_fin2 /= pi_fin2.sum()
-            thetas.append([A, p, pi_0, pi_fin2])
+        features = np.concatenate((features, (p2 / p - p2.sum(axis=2).reshape(len(X), -1, 1)).reshape(len(X), -1)),
+                                  axis=1)
+        return features
 
-        return thetas
+    ### Functions to find the likeliest parameters
+    def EM_HMM(self, X_initial, K, A, pi_0, pi_fin, p, Niter=10):
+        X = self.transform(X_initial, self.k)
 
-    def compute_likelihoods(self, X, thetas):
-        likelihoods = []
-        for theta in thetas:
-            A, p, pi_0, pi_fin = theta
-
-            alphas = []
-            betas = []
-            for string in X:
-                alphas.append(self.alpha_recursion(string, A, pi_0, p))
-                betas.append(self.beta_recursion(string, A, pi_fin, p))
-
-            likelihoods.append([self.log_likelihood_hmm(0, alpha, beta) for alpha, beta in zip(alphas, betas)])
-        return np.array(likelihoods)
-
-    def compute_feature_vector(self, X, theta = theta, eps = 0.005):
-        thetas = self.compute_thetas(theta, eps)
-        initial_likelihood = self.compute_likelihoods(X, [theta])
-        likelihoods = self.compute_likelihoods(X, thetas)
-        return (initial_likelihood - likelihoods).T / eps
-
-    ### Functions to fing the likeliest parameters
-
-    def EM_HMM(self, X, K, A, pi_0, pi_fin, p, Niter=10):
         np.random.seed(10)
         T = len(X[0])
         l = len(X)
@@ -179,14 +160,16 @@ class FisherKernel(Kernel):
                 alphas.append(self.alpha_recursion(string, A, pi_0, p))
                 betas.append(self.beta_recursion(string, A, pi_fin, p))
 
-            p_zt = np.array([[self.proba_hidden(t, alpha, beta) for t in range(T)] for alpha, beta in zip(alphas, betas)])
+            p_zt = np.array(
+                [[self.proba_hidden(t, alpha, beta) for t in range(T)] for alpha, beta in zip(alphas, betas)])
             pi_0 = p_zt.sum(axis=0)[0]
             pi_0 /= pi_0.sum()
 
             pi_fin = p_zt.sum(axis=0)[-1]
             pi_fin /= pi_fin.sum()
 
-            A = sum(self.proba_joint_hidden(t, string, alpha, beta, A, p) for t in range(T - 1) for string, alpha, beta in
+            A = sum(self.proba_joint_hidden(t, string, alpha, beta, A, p) for t in range(T - 1)
+                    for string, alpha, beta in
                     zip(X, alphas, betas))
             A /= A.sum(axis=1).reshape(-1, 1)
 
@@ -196,7 +179,6 @@ class FisherKernel(Kernel):
             p /= p.sum(axis=1).reshape(-1, 1)
 
             loss.append(sum(self.log_likelihood_hmm(0, alpha, beta) for alpha, beta in zip(alphas, betas)))
-            print(A, p, pi_0, pi_fin, loss[-1])
 
         return A, pi_0, pi_fin, p, loss
 
@@ -205,4 +187,29 @@ class FisherKernel(Kernel):
         for string in X:
             X_bis.append(list(string))
         X_bis = np.array(X_bis)
-        return np.array([X_bis == "A", X_bis == "C", X_bis == "G", X_bis == "T"])  # .reshape(len(X), len(X[0]), -1, 4)
+        permutations = self.generate_permutations(self.k)
+        return np.array([X_bis == perm for perm in permutations])  # .reshape(len(X), len(X[0]), -1, 4)
+
+    def transform(self, X, k):
+        X2 = []
+        for x in X:
+            temp = []
+            for i in range(len(x) - k):
+                temp.append(x[i:i + k])
+            X2.append(temp)
+        return X2
+
+    def generate_permutations(self, k):
+        if k == 1:
+            return ["A", "C", "G", "T"]
+        else:
+            l = self.generate_permutations(k - 1)
+            l2 = []
+            for e in l:
+                l2.append(e + "A")
+                l2.append(e + "C")
+                l2.append(e + "G")
+                l2.append(e + "T")
+
+            return l2
+
