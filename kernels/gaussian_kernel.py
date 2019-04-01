@@ -1,5 +1,5 @@
 ########################################################################
-### Exponential of linear kernel on one-hot encoded sequences
+### Gaussian kernel on one-hot encoded sequences
 ########################################################################
 
 from imports import *
@@ -10,6 +10,9 @@ class ExponentialLinearKernel(LinearKernel):
         self.gamma = gamma
         super().__init__(normalize)
 
+    # ||x-y||² = ||x||² + ||y||² - 2x.y^T
+    # As norms are equal (one hot encoding, the following is equivalent to the Gaussian kernel with Euclidian metric
+    # on one-hot Euclidian sequences
     def compute_train(self, data_train):
         n = len(data_train[0])
         feature_vector = self.compute_feature_vector(data_train)

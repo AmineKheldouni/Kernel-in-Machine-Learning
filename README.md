@@ -27,7 +27,7 @@ If you want to build other types of kernels, please refer to the `./kernels/kern
 ### Kernel models
 We implemented several kernels that handle string data and help classify the DNA sequences by learning the TF structures:
 1. Linear Kernel
-2. Exponential Linear Kernel
+2. Gaussian Kernel
 3. Exponential Kernel with Levenshtein distance
 4. Spectrum Kernel
 5. Spectrum Kernel with Mismatch

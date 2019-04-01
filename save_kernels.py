@@ -3,7 +3,7 @@ from imports import *
 from kernels.sum_kernel import SumKernel
 from kernels.spectrum_kernel import SpectrumKernel
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
-from kernels.exponential_linear_kernel import ExponentialLinearKernel
+from kernels.gaussian_kernel import ExponentialLinearKernel
 
 from submission import *
 from utils import *
