@@ -3,7 +3,7 @@ from imports import *
 from kernels.sum_kernel import SumKernel
 from kernels.spectrum_kernel import SpectrumKernel
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
-from kernels.gaussian_kernel import ExponentialLinearKernel
+from kernels.gaussian_kernel import GaussianKernel
 
 from submission import *
 from utils import *
@@ -31,7 +31,7 @@ if not os.path.exists('./storage'):
 dic_kernel_names = {'MismatchSpectrumKernel': MismatchSpectrumKernel,
                     'SpectrumKernel': SpectrumKernel,
                     'SumKernel': SumKernel,
-                    'ExponentialLinearKernel': ExponentialLinearKernel}
+                    'ExponentialLinearKernel': GaussianKernel}
 
 file_name = ['Ktrain']
 file_name.append(kernel_type)

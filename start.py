@@ -4,7 +4,7 @@
 from imports import *
 
 from kernels.sum_kernel import SumKernel
-from kernels.gaussian_kernel import ExponentialLinearKernel
+from kernels.gaussian_kernel import GaussianKernel
 from kernels.spectrum_kernel import SpectrumKernel
 from kernels.mismatch_spectrum_kernel import MismatchSpectrumKernel
 from kernels.levenshtein_kernel import LevenshteinKernel

@@ -5,14 +5,14 @@
 from imports import *
 from kernels.linear_kernel import LinearKernel
 
-class ExponentialLinearKernel(LinearKernel):
+class GaussianKernel(LinearKernel):
     def __init__(self, gamma, normalize = False):
         self.gamma = gamma
         super().__init__(normalize)
 
     # ||x-y||² = ||x||² + ||y||² - 2x.y^T
-    # As norms are equal (one hot encoding, the following is equivalent to the Gaussian kernel with Euclidian metric
-    # on one-hot Euclidian sequences
+    # As norms are equal (one hot encoding), the following is equivalent to the Gaussian kernel with Euclidean metric
+    # on one-hot encoded sequences
     def compute_train(self, data_train):
         n = len(data_train[0])
         feature_vector = self.compute_feature_vector(data_train)
