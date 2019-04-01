@@ -58,6 +58,7 @@ kernel05 = MismatchSpectrumKernel(6, 0, normalize = True)
 kernel06 = LevenshteinKernel(0.5)
 kernel07 = MismatchSpectrumKernel(4, 1, normalize = True)
 kernel08 = MismatchSpectrumKernel(4, 0, normalize = True)
+kernel09 = MismatchSpectrumKernel(10, 0, normalize = True)
 kernel0 = SumKernel([kernel00,
                      kernel01,
                      kernel02,
@@ -66,8 +67,9 @@ kernel0 = SumKernel([kernel00,
                      kernel05,
                      kernel06,
                      kernel07,
-                     kernel08])
-lbd0 = 0.0005
+                     kernel08,
+                     kernel09])
+lbd0 = 0.0004
 
 svm0, train_acc, val_acc = SVM_prediction(X0_train, X0_val, y0_train, y0_val, kernel0, lbd0)
 print("Training accuracy:", train_acc)
@@ -85,6 +87,7 @@ kernel05 = MismatchSpectrumKernel(6, 0, normalize = True)
 kernel06 = LevenshteinKernel(0.5)
 kernel07 = MismatchSpectrumKernel(4, 1, normalize = True)
 kernel08 = MismatchSpectrumKernel(4, 0, normalize = True)
+kernel09 = MismatchSpectrumKernel(10, 0, normalize = True)
 kernel1 = SumKernel([kernel00,
                      kernel01,
                      kernel02,
@@ -93,8 +96,10 @@ kernel1 = SumKernel([kernel00,
                      kernel05,
                      kernel06,
                      kernel07,
-                     kernel08])
-lbd1 = 0.0007
+                     kernel08,
+                     kernel09])
+
+lbd1 = 0.0008
 svm1, train_acc, val_acc = SVM_prediction(X1_train, X1_val, y1_train, y1_val, kernel1, lbd1)
 print("Training accuracy:", train_acc)
 if len(X0_val) > 0:
@@ -112,6 +117,7 @@ kernel05 = MismatchSpectrumKernel(6, 0, normalize = True)
 kernel06 = LevenshteinKernel(0.5)
 kernel07 = MismatchSpectrumKernel(4, 1, normalize = True)
 kernel08 = MismatchSpectrumKernel(4, 0, normalize = True)
+kernel09 = MismatchSpectrumKernel(10, 0, normalize = True)
 kernel2 = SumKernel([kernel00,
                      kernel01,
                      kernel02,
@@ -120,8 +126,10 @@ kernel2 = SumKernel([kernel00,
                      kernel05,
                      kernel06,
                      kernel07,
-                     kernel08])
-lbd2 = 0.0008
+                     kernel08,
+                     kernel09])
+
+lbd2 = 0.0006
 svm2, train_acc, val_acc = SVM_prediction(X2_train, X2_val, y2_train, y2_val, kernel2, lbd2)
 print("Training accuracy:", train_acc)
 if len(X0_val) > 0:
