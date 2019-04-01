@@ -1,0 +1,188 @@
+\documentclass[11pt,twocolumn,letterpaper]{article}
+%FIXME: let's cheat a bit. 10.5 pt and it is perfect
+
+
+\setlength{\textheight}{10.5in}
+\setlength{\textwidth}{7.225in}
+\setlength{\columnsep}{0.28in}
+\setlength{\topmargin}{-0.8in}
+\setlength{\leftmargin}{-0.8in}
+\setlength{\headheight}{-0.2in}
+\setlength{\headsep}{0in}
+\setlength{\parindent}{1pc}
+\setlength{\oddsidemargin}{-.304in}
+\setlength{\evensidemargin}{-.304in}
+
+
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{comment}
+\usepackage{epsfig}
+\usepackage{listings}
+
+\usepackage[left=0.6cm, right=0.6cm, top=0.6cm, bottom=0.6cm]{geometry}
+\usepackage{titlesec}
+\titlespacing*{\section}
+{0pt}{0.5ex}{0.5ex}
+\titlespacing*{\subsection}
+{0pt}{1.ex}{0.75ex}
+
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{argmax} % thin space, limits underneath in displays
+\usepackage[colorlinks=true, citecolor=green, linkcolor=blue, urlcolor=blue]{hyperref}
+
+\usepackage[backend=bibtex, style=numeric, bibencoding=ascii, sorting=ynt]{biblatex}
+\addbibresource{biblio}
+
+ \date{}
+
+
+\usepackage{graphicx, caption, subcaption}
+
+%The goal of the data challenge is to learn how to implement machine learning algorithms, gain understanding about them and adapt them to structural data. For this reason, we have chosen a sequence classification task: predicting whether a DNA sequence region is binding site to a specific transcription factor.
+
+%Transcription factors (TFs) are regulatory proteins that bind specific sequence motifs in the genome to activate or repress transcription of target genes. Genome-wide protein-DNA binding maps can be profiled using some experimental techniques and thus all genomics can be classified into two classes for a TF of interest: bound or unbound. In this challenge, we will work with three datasets corresponding to three different TFs.
+
+%Two days after the deadline of the data challenge, you will have to provide
+
+%a small report on what you did (in pdf format, 11pt, 2 pages A4 max, with your team name and member names written under the title)
+
+%your source code (zip archive), with a simple script "start" (that may be called from Matlab, Python, R, or Julia) which will reproduce your submission and saves it in Yte.csv
+
+%The most important rule is: DO IT YOURSELF. The goal of the data challenge is not get the best score on this data set at all costs, but instead to learn how to implement things in practice, and gain practical experience with the machine learning techniques involved.
+
+
+\setcounter{page}{1}
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{\textbf{Kernels in Machine Learning Project - Protein sequences classification}\vspace{-0.5ex}}
+
+\author{Charles \textsc{Auguste}  -  Yonatan \textsc{Deloro}  -  Amine \textsc{Kheldouni} \\
+{\tt\small Team name: OTP Kernel | Contact: firstname.lastname@eleves.enpc.fr}
+% For a paper whose authors are all at the same institution,
+% omit the following lines up until the closing ``}'f'.
+% Additional authors and addresses can be added with ``\and'',
+% just like the second author.
+% To save space, use either the email address or home page, not both
+\vspace{-4ex}}
+
+
+\maketitle
+%\thispagestyle{empty}
+
+%%%%%%%%% ABSTRACT
+
+The goal of the "Kernels in Machine Learning" challenge was to gain practical experience on kernel-based learning algorithms suited for structured data. The challenge aimed at predicting whether or not a DNA sequence region is binding to a specific transcription factor (TF), for three datasets containing 2000 training sequences and 1000 test sequences. Our best solution to this classification task was based on Support Vector Machine (SVM) algorithm using a sum of Spectrum, Mismatch, and Levenshtein-Exponential Kernels. First we describe the various kernels and algorithms we implemented. Then, we explicit our best solution and discuss our results. Finally, we suggest several ideas which could enhance the performances of the less successful methods we tried.
+
+
+\section{Designing Kernels for DNA sequences}
+
+\subsection{Gaussian Kernel with Euclidean distance}
+
+First of all, we implemented the Gaussian kernel with Euclidean metric $K(s,s') = \exp (- \gamma  ||e(s) - e(s')||_2^2)$, where $s$ and $s'$ are two DNA sequences, and where $e(s)$ is the one-hot encoding matrix of the sentence $s$ (of size $(n,4)$ with $n$ the sentence length, mapping $A,T,C,G$ to the $\mathbb{R}^4$ standard basis) which we then flattened to a vector.
+
+\subsection{Exponential Kernel with Levenshtein distance}
+
+Then, we implemented the exponential kernel $K(s,s') = \exp (- \gamma d(s,s'))$), using, as for the metric $d$, the Levenshtein edit distance, which computes the length of the shortest path of operations to transform $s$ into $s'$, using only insertion, removal and substitution of characters as the three allowed edit operations. The kernel is pd. as the Levenshtein metric satisfies the distance properties \cite{Xu2004KernelsBO}. We computed the Levenshtein distance between $s$ and $s'$ using dynamic programming, but finally used the Python Levenstein library to speed-up computation (time complexity $O(|s|.|s'|)$).
+
+\subsection{Fisher Kernel - with Hidden Markov Model}
+
+The Fisher Kernel $K(s,s') = \phi_{\theta_0}(s)^T I(\theta_0)^{-1}\phi_{\theta_0}(s')$ with $\phi_{\theta_0}(s) = \nabla_{\theta} \log P_{\theta}(s)|_{\theta=\theta_0}$ and $I(\theta_0) = \mathbb{E}[\phi_{\theta_0}(s)\phi_{\theta_0}(s)^T]$, compares two sequences $s$ and $s'$ looking at how much each parameter of the probabilistic model we designed actually contributes to generating $s$ and $s'$. Following \cite{Tsuda} approach, we found it relevant to implement a Hidden Markov Model (HMM) as our probabilistic model. We computed the maximum likelihood estimator $\theta_0$ using the EM algorithm and the forward-backward algorithm. We tried different underlying models with Markov assumptions of order $m=1, 3, 6$ and different numbers of underlying states.
+
+\subsection{Spectrum and Mismatch Kernels}
+
+The Spectrum kernel compares two sequences looking at the number of common subsequences of a given length they contain : $K(s,s') = \sum_{u \in A_k} \psi_u(s) \psi_u(s')$, with $A_k$ the set of all possible subsequences of length $k$ and $\psi_u(x)$ the occurrences counter of $u$ in $s$. The Mismatch kernel \cite{Leslie_w.s.:mismatch} takes into account subsequences similar up to a certain number of mismatches $m$: $\psi_u(s)$ becomes the number of occurrences of subsequences of length $k$ at distance lower than $m$ mismatches from $u$. To compute these kernels, we did not use the usual trie implementation but rather used sparse matrices that we filled using efficient mismatch computation based on memoization.
+
+
+\subsection{LA Kernel with Nystrom approximation}
+
+$K^{LA, \beta}(s,s')$ sums up the scores obtained from local alignments with gaps of the sequences $s$ and $s'$  \cite{article}, with scores computed given a substitution matrix $S(c,c')_{c,c' \in \{A,T,C,G\}}$ and a gap penalty function $g_{d,e}(n) = d+e(n-1)$ ($\beta$ is an additional parameter).  We implemented the dynamic programming described in \cite{article} to compute it, then applied $\frac{1}{\beta} \log .$ transformation to counter the fast decrease of the kernel value with the similarity, and finally substracted the smallest neigative eigenvalue from the train Gram matrix diagonal to make it p.d. as proposed in \cite{article}. 
+
+To compute the LA kernel, we had to make use of Nystrom approximation \cite{MVAKernels}: we selected randomly $p<<2000$ anchor sequences $(a_j)_{1 \leq j \leq p}$ in a given training dataset and encoded each sequence $s$ with a $p$-dimensional vector $\phi(s) = K_f^{-1/2} [K(s,a_1),...,K(s,a_p)]^T$ with $K_f$ the Gram matrix for the anchors. Train and test Gram matrices were computed using kernel approximation $\phi(s)^T\phi(s')$. Choosing $p=40$ reduced considerably the number of kernel evaluations, and the expected number of hours for training + prediction from $333,3$ to $6,7$.  
+
+\subsection{Normalizing Kernels}
+
+We also considered normalizing the data to the unit norm in the feature space for the above kernels, building $K^{norm}(s,s') = \frac{K(s,s')}{\sqrt{K(s,s)K(s',s')}}$. 
+
+\subsection{Combining Kernels with (Weighted) Sums}
+
+Finally, we combined some of the kernels mentioned above using weighted sums of kernels $\sum_{i} \eta_i K_i$ , with $\eta \geq 0$. More precisely, we tried two options: (i) choosing any $\eta_i$ equal to $1$, which is equivalent to concatenating the features for the various $K_i$ \cite{MVAKernels}, and (ii) using Multiple Kernel Learning to optimize $\eta$ (cf. \§2.2), which can be thought as a risk minimization estimator with group lasso penalty \cite{MVAKernels}, or as selecting features of the $K_i$ .
+
+\section{Predicting TF-bindings with Kernels}
+
+\subsection{Support Vector Machine}
+
+Predicting a TF-binding is a binary classification problem. The standard Support Vector Machine algorithm solves the penalized risk estimator minimization problem $\min_{f \in H} \frac{1}{n} \sum_{i=1}^{n} \phi(y_i f(x_i)) + \lambda ||f||_H^2 $ (P) using hinge loss $\phi(u) = \max(1-u,0)$ (denoting $(x_i,y_i)$ the training data, with $y_i \in \{-1,1\}$, and $H$ the RKHS). Thanks to the representer theorem, the solution can be expanded as $f(x) = \sum_{i=1}^n \alpha_i K(x_i,x)$. For computation efficiency, we chose to solve the dual formation (D) of the convex problem (P), which is \cite{MVAKernels}: $\max_{\alpha \in \mathbb{R}^n} J(\alpha) = - \frac{1}{2} \alpha^T K \alpha + \alpha^T y$ subject to $0 \leq Diag(y) \alpha \leq \frac{1}{2 \lambda n}$, where $K$ is the training Gram matrix. We solved it thanks to the quadratic programming solver from CVXOPT library.
+
+In order to find a good regularization parameter $\lambda$, whose optimal value is known to depend on the dataset, we first used a grid search and selected the value which led to the best score on a validation set. However, we observed that $\lambda$ depended on the split so we decided to implement a $K$-fold validation. In practice, the latter took much more time for the kernels for which evaluation was expensive, so we often used a simple validation to select a reasonably good $\lambda$.
+
+\subsection{Multiple Kernel Learning (MKL)}
+
+To optimize $\eta$ using the weighted sum of kernels $K_{\eta} = \sum_{1 \leq i \leq M} \eta_i K_i$, we attempted to implement the SimpleMKL algorithm designed by \cite{rakotomamonjy:hal-00218338} which solves, using a reduced gradient algorithm: $\min_{\eta \in \Sigma_M} J(\alpha_{K_{\eta}}^*)$ with $\alpha_{K_{\eta}}^*$ the solution of problem (D) for kernel $K_{\eta}$ ($\Sigma_M$ denotes the simplex in $\mathbb{R}^M$).
+
+
+\section{Results and discussion}
+
+Our best solution was achieved using a sum of normalized Spectrum and Mismatch Kernels ($k = \{4, 6, 8\}$, $m =\{0, 1, 2\}$) and Exponential Kernel with Levenshtein Distance ($\gamma = 0.5$). The feature space was of very high dimension ($4^k$ per mismatch kernel of length $k$). This solution led to 71.07\% accuracy in the public leaderboard ($22^{th}/76$) and to 67.53\% with the last 50\% ($37^{th}/76$). Despite our validation process, there is maybe still some overfitting with our quite high dimensional feature space.
+
+Definitely, the Spectrum and the Mismatch kernels were those which performed the best. Normalizing them seemed to increase performances. Summing them (and with the Levenshtein one) enabled to further increase the performance. However, using MKL to optimize the $\eta$ of the sum was not fruitful as it converged to a vector with zero weights for any kernel except for one, generally among the best, which was weighted 1. Despite several proof-readings, we did not manage to spot a mistake in the final code, and the target $J(K_{\eta})$ kept decreasing as expected. Maybe we can hypothesize that, as many of the kernels we used in the sum were somehow similar, the MKL only selected the best one (as the Lasso regularization tends to discard many features). 
+
+The Fisher Kernel yielded around $60-65\%$ only on our validation sets. Simple HMM did not capture enough information and held bad results while it was hard to make more complex models (greater Markov order) converge. Therefore, all generative models we used yielded average results. 
+
+The LA Kernel with Nystrom approximation (using BLAST matrix $S(c,c')=5.1_{c=c'} - 4.1_{c \neq c'}$ and $(e,d, \beta)=(1,7, 0.5)$) led to at most 55\% on our validation sets. The dimension of the projection space (40) was certainly too small to hope for something, given that we chose its basis at random among the 2000 training sequences. In addition, the many hours needed to assess such kernel made it impossible for us to do parameters tuning properly.
+
+The relative success of Spectrum and Mismatch kernels with respect to Gaussian and LA Kernels might be interpreted by the fact that substructures presence in sequences are maybe more discriminative than specific DNA basis at given positions.
+
+
+
+
+\section{Ideas for potential improvements}
+
+To improve regularization and allow for better generalization, one idea could have consisted in using ensemble methods. Instead of choosing $\lambda$ with a $k$-fold cross validation process, one idea is to predict the label with each of the $k$ SVM trained on $80\%$ of the data, and predict the final label with the sign of the mean of the labels given by each predictor. 
+
+For LA kernel, we would have certainly needed a faster implementation of kernel evaluation (using a transducer) to use a larger number of anchor points for its Nystrom approximation, as well as Kernel PCA algorithm to get more interesting projective dimensions. 
+
+Finally, one useful pre-processing could have consisted in grouping the DNA basis by 3 into amino acids, and computing kernels on the new sequences. As several triplets encode for the same acid, introducing such prior knowledge may have led to better performances, though we are not sure at which position to begin the transformation.
+
+\section{Acknowledgements}
+
+Thanks for this challenge as exciting as instructive! It is a bit disappointing to observe that the most classic kernels seemed to perform the best on this task, but we are happy to have implemented other kernels or algorithms discussed in class, even if this work was not quantitatively fruitful. Link to our \href{https://github.com/AmineKheldouni/Kernel-in-Machine-Learning}{Git repo}.
+
+\begin{thebibliography}{5}  
+
+\small \printbibliography[heading=none]
+%\nocite{*}
+
+\end{thebibliography}
+
+
+
+
+
+\end{document}
+
+%FIXME: Fill results table. 
+\begin{table}[h!] 
+    \centering  
+    \small
+    \begin{tabular}{l c c} 
+    \hline
+     Kernels    & Test (first 50\%) & Test (all)  \\
+    \hline
+     &  &  \\
+    \hline
+      & & \\
+    \hline
+     & & \\
+    \hline
+    \end{tabular}
+    \caption{}
+    \label{parameters}
+\end{table}    
+
+
+
