@@ -10,7 +10,10 @@ def SVM_prediction(data_train, data_val, y_train, y_val, kernel, lbd=0.001):
     svm.train(data_train, y_train, lbd)
     predictions = np.array(np.sign(svm.predict(data_val)), dtype=int)
     assert (predictions != 0).all()
-    return svm, svm.score_train(), (y_val == predictions).mean()
+    if len(y_val) > 0:
+        return svm, svm.score_train(), (y_val == predictions).mean()
+    else:
+        return svm, svm.score_train(), np.nan
 
 def train_val_split(data, y, split = 300):
     """ Function splitting the data into train and validation sets (split : number of validation examples)"""
